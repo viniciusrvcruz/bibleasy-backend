@@ -1,0 +1,41 @@
+services:
+  bible_api:
+    container_name: bible_api
+    build: ./docker/php
+    command: [ "bash", "/app/docker/php/start.sh" ]
+    ports:
+      - 80:80
+    volumes:
+      - ./:/app
+    depends_on:
+      bible_postgresql:
+        condition: service_healthy
+        restart: true
+    networks:
+      - bible_network
+
+  bible_postgresql:
+    container_name: bible_postgresql
+    image: postgres:18
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: bible_db
+    ports:
+      - 5432:5432
+    volumes:
+      - bible_postgres_data:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 10s
+      retries: 5
+      start_period: 30s
+      timeout: 10s
+    networks:
+      - bible_network
+
+volumes:
+  bible_postgres_data:
+
+networks:
+  bible_network:
