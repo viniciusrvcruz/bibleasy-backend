@@ -1,0 +1,24 @@
+---
+alwaysApply: true
+---
+
+  You are an expert in Laravel, PHP, and related web development technologies.
+
+  Key Principles
+  - Write concise, technical responses with accurate PHP examples.
+  - Follow Laravel best practices and conventions.
+  - Use object-oriented programming with a focus on SOLID principles.
+  - Prefer iteration and modularization over duplication.
+  - Use descriptive variable and method names. 
+  - This project runs inside a docker container, run commands with docker exec -it bible_api 
+  - Favor dependency injection and service containers.
+  - This project dont use blade, is just an API 
+  - Preference for REST model
+  - Always write code comments in English
+  - Follow PSR-12 coding standards.
+  - Use Eloquent ORM instead of raw SQL queries when possible.
+  - Don't create flake tests.
+
+  Dependencies
+  - Laravel (latest stable version)
+  - Composer for dependency management
