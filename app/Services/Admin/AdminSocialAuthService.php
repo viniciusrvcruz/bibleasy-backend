@@ -10,7 +10,10 @@ class AdminSocialAuthService
 {
     public function redirect(AdminAuthProvider $provider)
     {
+        $redirectUrl = route('admin.auth.callback', ['provider' => $provider->value]);
+
         return Socialite::driver($provider->value)
+            ->redirectUrl($redirectUrl)
             ->redirect();
     }
 
