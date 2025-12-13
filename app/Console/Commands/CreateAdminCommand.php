@@ -39,13 +39,17 @@ class CreateAdminCommand extends Command
             return Command::FAILURE;
         }
 
-        Admin::create([
+        $admin = Admin::create([
             'name' => 'Admin User',
             'email' => $email,
             'auth_provider' => AdminAuthProvider::GOOGLE->value,
         ]);
 
+        $token = $admin->createToken('admin-token')->plainTextToken;
+
         $this->info("Admin created successfully with email: {$email}");
+        $this->info("Authentication Token:");
+        $this->line($token);
 
         return Command::SUCCESS;
     }
