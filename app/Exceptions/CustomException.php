@@ -7,16 +7,16 @@ use Exception;
 abstract class CustomException extends Exception
 {
     protected int $statusCode = 500;
-    protected string $error;
+    protected string $errorType;
 
-    public function __construct(string $error, string $message)
+    public function __construct(string $type, string $message)
     {
-        $this->error = $error;
+        $this->errorType = $type;
         parent::__construct($message);
     }
 
-    public function getError(): string
+    public function getErrorType(): string
     {
-        return $this->error;
+        return $this->errorType;
     }
 }

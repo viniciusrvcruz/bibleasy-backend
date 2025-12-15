@@ -26,6 +26,8 @@ class VersionImportService
 
             $importer->import($data, $version->id);
 
+            $version->loadCount(['chapters', 'verses']);
+
             $this->validateImport($version);
 
             return $version;
@@ -34,8 +36,8 @@ class VersionImportService
 
     private function validateImport(Version $version): void
     {
-        $chaptersCount = $version->chapters()->count();
-        $versesCount = $version->chapters()->withCount('verses')->get()->sum('verses_count');
+        $chaptersCount = $version->chapters_count;
+        $versesCount = $version->verses_count;
 
         if ($chaptersCount !== 1189) {
             throw new VersionImportException('invalid_chapters_count', "Expected 1,189 chapters but got {$chaptersCount}");

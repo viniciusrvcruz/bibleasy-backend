@@ -19,12 +19,12 @@ return Application::configure(basePath: dirname(__DIR__))
         $exceptions->render(function (Throwable $e) {
 
             return response()->json([
-                'error' => $e instanceof CustomException ? $e->getError() : basename(get_class($e)),
+                'type' => $e instanceof CustomException ? $e->getErrorType() : basename(get_class($e)),
                 'message' => $e->getMessage() ?: 'An unexpected error occurred',
                 'timestamp' => now()->toISOString(),
                 'errors' => is_callable([$e, 'errors']) ? $e->errors() : null,
                 // Include debug info only in non-production environments
-                'debug' => app()->environment('local', 'testing') ? [
+                'debug' => !app()->isProduction() ? [
                     'file' => $e->getFile(),
                     'line' => $e->getLine(),
                     'trace' => $e->getTraceAsString()
