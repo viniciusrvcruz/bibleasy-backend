@@ -6,7 +6,9 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Book extends Model
-{    
+{
+    public $timestamps = false;
+
     protected $fillable = ['name', 'order'];
 
     public function chapters(): HasMany
