@@ -19,4 +19,12 @@ abstract class CustomException extends Exception
     {
         return $this->errorType;
     }
+
+    public function render()
+    {
+        return response()->json([
+            'error' => $this->getErrorType(),
+            'message' => $this->getMessage(),
+        ], $this->statusCode);
+    }
 }

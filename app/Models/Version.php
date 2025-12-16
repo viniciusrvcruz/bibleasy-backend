@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 
 class Version extends Model
 {
-    protected $fillable = ['name', 'copyright'];
+    protected $fillable = ['name', 'language', 'copyright'];
 
     public function chapters(): HasMany
     {

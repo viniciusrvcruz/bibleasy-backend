@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Enums\VersionLanguageEnum;
 use App\Services\Version\Factories\VersionImporterFactory;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -26,7 +27,12 @@ class VersionRequest extends FormRequest
             'name' => [
                 'required',
                 'string',
-                Rule::unique('versions', 'name')->ignore($versionId)
+                Rule::unique('versions', 'name')->where('language', $this->input('language'))->ignore($versionId)
+            ],
+            'language' => [
+                'required',
+                'string',
+                Rule::enum(VersionLanguageEnum::class)
             ],
             'copyright' => [
                 'nullable',

@@ -21,6 +21,7 @@ class VersionImportService
         return DB::transaction(function () use ($dto, $data, $importer) {
             $version = Version::create([
                 'name' => $dto->versionName,
+                'language' => $dto->language,
                 'copyright' => $dto->copyright,
             ]);
 

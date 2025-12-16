@@ -14,7 +14,10 @@ class VersionController extends Controller
 {
     public function index()
     {
-        $versions = Version::withCount(['chapters', 'verses'])->get();
+        $versions = Version::query()
+            ->when(request('language'), fn($q, $lang) => $q->where('language', $lang))
+            ->withCount(['chapters', 'verses'])
+            ->get();
 
         return VersionResource::collection($versions);
     }
@@ -25,6 +28,7 @@ class VersionController extends Controller
             content: $request->file('file')->getContent(),
             importerName: $request->input('importer'),
             versionName: $request->input('name'),
+            language: $request->input('language'),
             copyright: $request->input('copyright', ''),
             fileExtension: $request->file('file')->getExtension(),
         );
