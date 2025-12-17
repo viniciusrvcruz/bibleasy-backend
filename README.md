@@ -41,7 +41,7 @@ O sistema utiliza PostgreSQL com as seguintes tabelas principais:
 
 - **Sistema de Importação**: Factory + Strategy pattern para importar diferentes formatos de Bíblias com validação automática (1.189 capítulos, ~31.100 versículos)
 - **API RESTful**: Endpoints para leitura, busca e navegação pelos textos bíblicos
-- **Autenticação Dual**: Guards separados para usuários (auth:users) e administradores (auth:admin) via Laravel Sanctum
+- **Autenticação Dual**: Guards separados para usuários (auth:users) e administradores (auth:admins) via Laravel Sanctum
 - **Gestão de Conteúdo**: Painel administrativo para CRUD de versões bíblicas
 - **Relacionamentos Complexos**: Suporte a anotações multi-versículos e marcações por usuário
 

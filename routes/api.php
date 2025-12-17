@@ -6,7 +6,7 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/versions', [VersionController::class, 'index']);
 
-Route::prefix('admin')->middleware('auth:admin')->group(function () {
+Route::prefix('admin')->middleware('auth:admins')->group(function () {
     Route::get('/me', fn (Request $request) => $request->user());
     Route::apiResource('versions', VersionController::class)->except(['index', 'show']);
 });
