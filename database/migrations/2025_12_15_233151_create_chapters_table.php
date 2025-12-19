@@ -11,11 +11,13 @@ return new class extends Migration
         Schema::create('chapters', function (Blueprint $table) {
             $table->id();
             $table->integer('number');
+            $table->integer('position');
             $table->foreignId('book_id')->constrained()->cascadeOnDelete();
             $table->foreignId('version_id')->constrained()->cascadeOnDelete();
             $table->timestamps();
             
             $table->unique(['book_id', 'version_id', 'number']);
+            $table->unique(['version_id', 'position']);
         });
     }
 

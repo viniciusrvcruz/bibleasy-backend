@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Chapter extends Model
 {
-    protected $fillable = ['number', 'book_id', 'version_id'];
+    protected $fillable = ['number', 'position', 'book_id', 'version_id'];
 
     public function book(): BelongsTo
     {

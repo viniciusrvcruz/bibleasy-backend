@@ -3,7 +3,7 @@
 namespace App\Http\Requests;
 
 use App\Enums\VersionLanguageEnum;
-use App\Services\Version\Factories\VersionImporterFactory;
+use App\Services\Version\Factories\VersionParserFactory;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -22,7 +22,7 @@ class VersionRequest extends FormRequest
             'importer' => [
                 $isStore ? 'required' : 'prohibited',
                 'string',
-                Rule::in(VersionImporterFactory::getAvailableImporters())
+                Rule::in(VersionParserFactory::getAvailableFormats())
             ],
             'name' => [
                 'required',
