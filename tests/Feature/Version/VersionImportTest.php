@@ -29,7 +29,7 @@ describe('Version Import', function () {
 
         $response = $this->postJson('/api/admin/versions', [
             'file' => $file,
-            'importer' => 'thiago_bodruk',
+            'importer' => 'json_thiago_bodruk',
             ...$versionData,
         ]);
 
@@ -65,7 +65,7 @@ describe('Version Import', function () {
 
         $response = $this->postJson('/api/admin/versions', [
             'file' => $file,
-            'importer' => 'thiago_bodruk',
+            'importer' => 'json_thiago_bodruk',
             'name' => 'Invalid Version',
             'language' => VersionLanguageEnum::ENGLISH->value,
         ]);
@@ -85,7 +85,7 @@ describe('Version Import', function () {
 
         $response = $this->postJson('/api/admin/versions', [
             'file' => $file,
-            'importer' => 'thiago_bodruk',
+            'importer' => 'json_thiago_bodruk',
             'name' => 'Test',
             'language' => VersionLanguageEnum::ENGLISH->value,
         ]);
@@ -100,11 +100,87 @@ describe('Version Import', function () {
 
         $response = $this->postJson('/api/admin/versions', [
             'file' => $file,
-            'importer' => 'thiago_bodruk',
+            'importer' => 'json_thiago_bodruk',
             'name' => 'Test',
             'language' => VersionLanguageEnum::ENGLISH->value,
         ]);
 
         $response->assertStatus(401);
+    });
+
+    it('rejects import with missing chapters', function () {
+        $this->actAsAdmin();
+
+        $invalidJson = json_encode(array_fill(0, 66, [
+            'chapters' => []
+        ]));
+
+        $file = UploadedFile::fake()->createWithContent('bible.json', $invalidJson);
+
+        $response = $this->postJson('/api/admin/versions', [
+            'file' => $file,
+            'importer' => 'json_thiago_bodruk',
+            'name' => 'Invalid Version',
+            'language' => VersionLanguageEnum::ENGLISH->value,
+        ]);
+
+        $response->assertStatus(422);
+        $response->assertJsonFragment(['error' => 'missing_chapters']);
+    });
+
+    it('rejects import with empty verses', function () {
+        $this->actAsAdmin();
+
+        $invalidJson = json_encode(array_fill(0, 66, [
+            'chapters' => [['   ', '']]
+        ]));
+
+        $file = UploadedFile::fake()->createWithContent('bible.json', $invalidJson);
+
+        $response = $this->postJson('/api/admin/versions', [
+            'file' => $file,
+            'importer' => 'json_thiago_bodruk',
+            'name' => 'Invalid Version',
+            'language' => VersionLanguageEnum::ENGLISH->value,
+        ]);
+
+        $response->assertStatus(422);
+        $response->assertJsonFragment(['error' => 'empty_verse']);
+    });
+
+    it('validates importer format', function () {
+        $this->actAsAdmin();
+
+        $file = UploadedFile::fake()->create('bible.json');
+
+        $response = $this->postJson('/api/admin/versions', [
+            'file' => $file,
+            'importer' => 'invalid_format',
+            'name' => 'Test',
+            'language' => VersionLanguageEnum::ENGLISH->value,
+        ]);
+
+        $response->assertStatus(422);
+        $response->assertJsonValidationErrors(['importer']);
+    });
+
+    it('validates chapters count after import', function () {
+        $this->actAsAdmin();
+
+        $data = array_fill(0, 66, [
+            'chapters' => [['verse']]
+        ]);
+
+        $file = UploadedFile::fake()->createWithContent('bible.json', json_encode($data));
+
+        $response = $this->postJson('/api/admin/versions', [
+            'file' => $file,
+            'importer' => 'json_thiago_bodruk',
+            'name' => 'Incomplete',
+            'language' => VersionLanguageEnum::ENGLISH->value,
+        ]);
+
+        $response->assertStatus(422);
+        $response->assertJsonFragment(['error' => 'invalid_chapters_count']);
     });
 });
