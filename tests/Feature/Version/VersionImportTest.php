@@ -36,7 +36,7 @@ describe('Version Import', function () {
 
         $response = $this->postJson('/api/admin/versions', [
             'file' => $file,
-            'importer' => 'json_thiago_bodruk',
+            'parser' => 'json_thiago_bodruk',
             ...$versionData,
         ]);
 
@@ -72,7 +72,7 @@ describe('Version Import', function () {
 
         $response = $this->postJson('/api/admin/versions', [
             'file' => $file,
-            'importer' => 'json_thiago_bodruk',
+            'parser' => 'json_thiago_bodruk',
             'name' => 'Invalid Version',
             'language' => VersionLanguageEnum::ENGLISH->value,
         ]);
@@ -92,7 +92,7 @@ describe('Version Import', function () {
 
         $response = $this->postJson('/api/admin/versions', [
             'file' => $file,
-            'importer' => 'json_thiago_bodruk',
+            'parser' => 'json_thiago_bodruk',
             'name' => 'Test',
             'language' => VersionLanguageEnum::ENGLISH->value,
         ]);
@@ -107,7 +107,7 @@ describe('Version Import', function () {
 
         $response = $this->postJson('/api/admin/versions', [
             'file' => $file,
-            'importer' => 'json_thiago_bodruk',
+            'parser' => 'json_thiago_bodruk',
             'name' => 'Test',
             'language' => VersionLanguageEnum::ENGLISH->value,
         ]);
@@ -126,7 +126,7 @@ describe('Version Import', function () {
 
         $response = $this->postJson('/api/admin/versions', [
             'file' => $file,
-            'importer' => 'json_thiago_bodruk',
+            'parser' => 'json_thiago_bodruk',
             'name' => 'Invalid Version',
             'language' => VersionLanguageEnum::ENGLISH->value,
         ]);
@@ -146,7 +146,7 @@ describe('Version Import', function () {
 
         $response = $this->postJson('/api/admin/versions', [
             'file' => $file,
-            'importer' => 'json_thiago_bodruk',
+            'parser' => 'json_thiago_bodruk',
             'name' => 'Invalid Version',
             'language' => VersionLanguageEnum::ENGLISH->value,
         ]);
@@ -155,20 +155,20 @@ describe('Version Import', function () {
         $response->assertJsonFragment(['error' => 'empty_verse']);
     });
 
-    it('validates importer format', function () {
+    it('validates parser format', function () {
         $this->actAsAdmin();
 
         $file = UploadedFile::fake()->create('bible.json');
 
         $response = $this->postJson('/api/admin/versions', [
             'file' => $file,
-            'importer' => 'invalid_format',
+            'parser' => 'invalid_format',
             'name' => 'Test',
             'language' => VersionLanguageEnum::ENGLISH->value,
         ]);
 
         $response->assertStatus(422);
-        $response->assertJsonValidationErrors(['importer']);
+        $response->assertJsonValidationErrors(['parser']);
     });
 
     it('validates chapters count after import', function () {
@@ -182,7 +182,7 @@ describe('Version Import', function () {
 
         $response = $this->postJson('/api/admin/versions', [
             'file' => $file,
-            'importer' => 'json_thiago_bodruk',
+            'parser' => 'json_thiago_bodruk',
             'name' => 'Incomplete',
             'language' => VersionLanguageEnum::ENGLISH->value,
         ]);
@@ -198,7 +198,7 @@ describe('Version Import', function () {
 
         $response = $this->postJson('/api/admin/versions', [
             'file' => $file,
-            'importer' => 'json_thiago_bodruk',
+            'parser' => 'json_thiago_bodruk',
             'name' => 'Position Test',
             'language' => VersionLanguageEnum::ENGLISH->value,
         ]);
@@ -224,14 +224,14 @@ describe('Version Import', function () {
 
         $this->postJson('/api/admin/versions', [
             'file' => $file1,
-            'importer' => 'json_thiago_bodruk',
+            'parser' => 'json_thiago_bodruk',
             'name' => 'Version 1',
             'language' => VersionLanguageEnum::ENGLISH->value,
         ])->assertStatus(201);
 
         $this->postJson('/api/admin/versions', [
             'file' => $file2,
-            'importer' => 'json_thiago_bodruk',
+            'parser' => 'json_thiago_bodruk',
             'name' => 'Version 2',
             'language' => VersionLanguageEnum::ENGLISH->value,
         ])->assertStatus(201);

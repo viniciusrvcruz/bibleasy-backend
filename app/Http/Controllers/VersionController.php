@@ -26,7 +26,7 @@ class VersionController extends Controller
     {
         $dto = new VersionImportDTO(
             content: $request->file('file')->getContent(),
-            importerName: $request->input('importer'),
+            importerName: $request->input('parser'),
             versionName: $request->input('name'),
             language: $request->input('language'),
             copyright: $request->input('copyright', ''),

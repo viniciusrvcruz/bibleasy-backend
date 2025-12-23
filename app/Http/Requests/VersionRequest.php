@@ -19,7 +19,7 @@ class VersionRequest extends FormRequest
                 $isStore ? 'required' : 'prohibited',
                 'file'
             ],
-            'importer' => [
+            'parser' => [
                 $isStore ? 'required' : 'prohibited',
                 'string',
                 Rule::in(VersionParserFactory::getAvailableFormats())
