@@ -6,8 +6,12 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/versions', [VersionController::class, 'index']);
-Route::get('/books/{book}/chapters/{number}', [ChapterController::class, 'show']);
-Route::get('/books/{book}/chapters/{number}/compare', [ChapterController::class, 'compare']);
+
+Route::prefix('books/{book}')->group(function () {
+    Route::get('/chapters', [ChapterController::class, 'index']);
+    Route::get('/chapters/{number}', [ChapterController::class, 'show']);
+    Route::get('/chapters/{number}/compare', [ChapterController::class, 'compare']);
+});
 
 Route::prefix('admin')->middleware('auth:admins')->group(function () {
     Route::get('/me', fn (Request $request) => $request->user());
