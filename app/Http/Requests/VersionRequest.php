@@ -29,6 +29,10 @@ class VersionRequest extends FormRequest
                 'string',
                 Rule::unique('versions', 'name')->where('language', $this->input('language'))->ignore($versionId)
             ],
+            'full_name' => [
+                'required',
+                'string'
+            ],
             'language' => [
                 'required',
                 'string',

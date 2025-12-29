@@ -11,6 +11,7 @@ return new class extends Migration
         Schema::create('versions', function (Blueprint $table) {
             $table->id();
             $table->string('name');
+            $table->string('full_name');
             $table->string('language');
             $table->text('copyright')->nullable();
             $table->timestamps();

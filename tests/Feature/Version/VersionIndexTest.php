@@ -11,7 +11,7 @@ describe('Version Index', function () {
 
         $response->assertStatus(200);
         $response->assertJsonCount(3);
-        $response->assertJsonStructure([['id', 'name', 'language', 'copyright', 'chapters_count', 'verses_count']]);
+        $response->assertJsonStructure([['id', 'name', 'full_name', 'language', 'copyright', 'chapters_count', 'verses_count']]);
     });
 
     it('filters versions by language', function () {

@@ -28,6 +28,7 @@ class VersionController extends Controller
             content: $request->file('file')->getContent(),
             importerName: $request->input('parser'),
             versionName: $request->input('name'),
+            versionFullName: $request->input('full_name'),
             language: $request->input('language'),
             copyright: $request->input('copyright', ''),
             fileExtension: $request->file('file')->getExtension(),

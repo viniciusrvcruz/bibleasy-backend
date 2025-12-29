@@ -30,6 +30,7 @@ describe('Version Import', function () {
 
         $versionData = [
             'name' => 'Test Version',
+            'full_name' => 'Test Version Full Name',
             'language' => VersionLanguageEnum::ENGLISH->value,
             'copyright' => 'Public Domain',
         ];
@@ -44,6 +45,7 @@ describe('Version Import', function () {
         $response->assertJsonStructure([
             'id',
             'name',
+            'full_name',
             'language',
             'copyright',
             'chapters_count',
@@ -74,6 +76,7 @@ describe('Version Import', function () {
             'file' => $file,
             'parser' => 'json_thiago_bodruk',
             'name' => 'Invalid Version',
+            'full_name' => 'Invalid Version Full Name',
             'language' => VersionLanguageEnum::ENGLISH->value,
         ]);
 
@@ -94,6 +97,7 @@ describe('Version Import', function () {
             'file' => $file,
             'parser' => 'json_thiago_bodruk',
             'name' => 'Test',
+            'full_name' => 'Test Full Name',
             'language' => VersionLanguageEnum::ENGLISH->value,
         ]);
 
@@ -109,6 +113,7 @@ describe('Version Import', function () {
             'file' => $file,
             'parser' => 'json_thiago_bodruk',
             'name' => 'Test',
+            'full_name' => 'Test Full Name',
             'language' => VersionLanguageEnum::ENGLISH->value,
         ]);
 
@@ -128,6 +133,7 @@ describe('Version Import', function () {
             'file' => $file,
             'parser' => 'json_thiago_bodruk',
             'name' => 'Invalid Version',
+            'full_name' => 'Invalid Version Full Name',
             'language' => VersionLanguageEnum::ENGLISH->value,
         ]);
 
@@ -148,6 +154,7 @@ describe('Version Import', function () {
             'file' => $file,
             'parser' => 'json_thiago_bodruk',
             'name' => 'Invalid Version',
+            'full_name' => 'Invalid Version Full Name',
             'language' => VersionLanguageEnum::ENGLISH->value,
         ]);
 
@@ -184,6 +191,7 @@ describe('Version Import', function () {
             'file' => $file,
             'parser' => 'json_thiago_bodruk',
             'name' => 'Incomplete',
+            'full_name' => 'Incomplete Full Name',
             'language' => VersionLanguageEnum::ENGLISH->value,
         ]);
 
@@ -200,6 +208,7 @@ describe('Version Import', function () {
             'file' => $file,
             'parser' => 'json_thiago_bodruk',
             'name' => 'Position Test',
+            'full_name' => 'Position Test Full Name',
             'language' => VersionLanguageEnum::ENGLISH->value,
         ]);
 
@@ -226,6 +235,7 @@ describe('Version Import', function () {
             'file' => $file1,
             'parser' => 'json_thiago_bodruk',
             'name' => 'Version 1',
+            'full_name' => 'Version 1 Full Name',
             'language' => VersionLanguageEnum::ENGLISH->value,
         ])->assertStatus(201);
 
@@ -233,6 +243,7 @@ describe('Version Import', function () {
             'file' => $file2,
             'parser' => 'json_thiago_bodruk',
             'name' => 'Version 2',
+            'full_name' => 'Version 2 Full Name',
             'language' => VersionLanguageEnum::ENGLISH->value,
         ])->assertStatus(201);
 

@@ -12,6 +12,7 @@ class VersionResource extends JsonResource
         return [
             'id' => $this->id,
             'name' => $this->name,
+            'full_name' => $this->full_name,
             'language' => $this->language,
             'copyright' => $this->copyright,
             'chapters_count' => $this->whenCounted('chapters'),

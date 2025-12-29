@@ -14,6 +14,7 @@ class VersionFactory extends Factory
     {
         return [
             'name' => fake()->words(2, true),
+            'full_name' => fake()->words(4, true),
             'language' => VersionLanguageEnum::ENGLISH->value,
             'copyright' => fake()->sentence(),
         ];

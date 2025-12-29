@@ -11,7 +11,7 @@ class Version extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['name', 'language', 'copyright'];
+    protected $fillable = ['name', 'full_name', 'language', 'copyright'];
 
     public function chapters(): HasMany
     {

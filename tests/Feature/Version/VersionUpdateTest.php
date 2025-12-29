@@ -9,12 +9,14 @@ describe('Version Update', function () {
 
         $version = Version::factory()->create([
             'name' => 'Old Name',
+            'full_name' => 'Old Full Name',
             'language' => VersionLanguageEnum::ENGLISH->value,
             'copyright' => 'Old Copyright',
         ]);
 
         $response = $this->putJson("/api/admin/versions/{$version->id}", [
             'name' => 'New Name',
+            'full_name' => 'New Full Name',
             'language' => VersionLanguageEnum::PORTUGUESE_BR->value,
             'copyright' => 'New Copyright',
         ]);
@@ -22,6 +24,7 @@ describe('Version Update', function () {
         $response->assertStatus(200);
         $response->assertJson([
             'name' => 'New Name',
+            'full_name' => 'New Full Name',
             'language' => VersionLanguageEnum::PORTUGUESE_BR->value,
             'copyright' => 'New Copyright',
         ]);
@@ -29,6 +32,7 @@ describe('Version Update', function () {
         $this->assertDatabaseHas('versions', [
             'id' => $version->id,
             'name' => 'New Name',
+            'full_name' => 'New Full Name',
             'language' => VersionLanguageEnum::PORTUGUESE_BR->value,
         ]);
     });
@@ -38,6 +42,8 @@ describe('Version Update', function () {
 
         $response = $this->putJson("/api/admin/versions/{$version->id}", [
             'name' => 'New Name',
+            'full_name' => 'New Full Name',
+            'language' => $version->language,
         ]);
 
         $response->assertStatus(401);
@@ -50,6 +56,8 @@ describe('Version Update', function () {
 
         $response = $this->putJson("/api/admin/versions/{$version->id}", [
             'name' => 'New Name',
+            'full_name' => 'New Full Name',
+            'language' => $version->language,
         ]);
 
         $response->assertStatus(401);
