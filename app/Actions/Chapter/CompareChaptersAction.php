@@ -2,24 +2,25 @@
 
 namespace App\Actions\Chapter;
 
-use App\Enums\BookNameEnum;
+use App\Enums\BookAbbreviationEnum;
 use App\Models\Chapter;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
 
 class CompareChaptersAction
 {
-    public function execute(string $verses, int $number, BookNameEnum $bookName, string $versions): Collection
+    public function execute(string $verses, int $number, BookAbbreviationEnum $bookName, string $versions): Collection
     {
         $versionIds = $this->parseVersions($versions);
         $verseNumbers = $this->parseVerses($verses);
 
-        return Chapter::whereIn('version_id', $versionIds)
-            ->where('number', $number)
-            ->whereHas('book', fn(Builder $query) => $query->where('name', $bookName->value))
+        return Chapter::where('number', $number)
+            ->whereHas('book', fn(Builder $query) => $query
+                ->where('abbreviation', $bookName)
+                ->whereIn('version_id', $versionIds))
             ->with([
                 'verses' => fn ($query) => $query->when($verseNumbers, fn($q) => $q->whereIn('number', $verseNumbers)),
-                'version',
+                'book.version',
                 'book',
             ])
             ->get();

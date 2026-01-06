@@ -24,12 +24,12 @@ class VersionRequest extends FormRequest
                 'string',
                 Rule::in(VersionParserFactory::getAvailableFormats())
             ],
-            'name' => [
+            'abbreviation' => [
                 'required',
                 'string',
-                Rule::unique('versions', 'name')->where('language', $this->input('language'))->ignore($versionId)
+                Rule::unique('versions', 'abbreviation')->where('language', $this->input('language'))->ignore($versionId)
             ],
-            'full_name' => [
+            'name' => [
                 'required',
                 'string'
             ],

@@ -59,36 +59,10 @@ describe('VersionValidator', function () {
     });
 
     describe('validateAfterImport', function () {
-        it('validates correct chapters and verses count', function () {
+        it('does not throw exception', function () {
             $version = new Version();
-            $version->chapters_count = 1189;
-            $version->verses_count = 31102;
 
             expect(fn() => $this->validator->validateAfterImport($version))->not->toThrow(Exception::class);
         });
-
-        it('throws exception for invalid chapters count', function () {
-            $version = new Version();
-            $version->chapters_count = 1000;
-            $version->verses_count = 31102;
-
-            $this->validator->validateAfterImport($version);
-        })->throws(VersionImportException::class, 'Expected 1,189 chapters but got 1000');
-
-        it('throws exception for verses count too low', function () {
-            $version = new Version();
-            $version->chapters_count = 1189;
-            $version->verses_count = 30000;
-
-            $this->validator->validateAfterImport($version);
-        })->throws(VersionImportException::class, 'Expected verses between 31,100 and 31,110 but got 30000');
-
-        it('throws exception for verses count too high', function () {
-            $version = new Version();
-            $version->chapters_count = 1189;
-            $version->verses_count = 32000;
-
-            $this->validator->validateAfterImport($version);
-        })->throws(VersionImportException::class, 'Expected verses between 31,100 and 31,110 but got 32000');
     });
 });

@@ -13,8 +13,8 @@ class VersionFactory extends Factory
     public function definition(): array
     {
         return [
-            'name' => fake()->words(2, true),
-            'full_name' => fake()->words(4, true),
+            'abbreviation' => fake()->words(2, true),
+            'name' => fake()->words(4, true),
             'language' => VersionLanguageEnum::ENGLISH->value,
             'copyright' => fake()->sentence(),
         ];

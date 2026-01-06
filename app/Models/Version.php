@@ -11,15 +11,15 @@ class Version extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['name', 'full_name', 'language', 'copyright'];
+    protected $fillable = ['abbreviation', 'name', 'language', 'copyright'];
 
-    public function chapters(): HasMany
+    public function books(): HasMany
     {
-        return $this->hasMany(Chapter::class);
+        return $this->hasMany(Book::class);
     }
 
-    public function verses(): HasManyThrough
+    public function chapters(): HasManyThrough
     {
-        return $this->hasManyThrough(Verse::class, Chapter::class);
+        return $this->hasManyThrough(Chapter::class, Book::class);
     }
 }

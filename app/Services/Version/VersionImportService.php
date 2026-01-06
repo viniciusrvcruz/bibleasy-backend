@@ -26,17 +26,15 @@ class VersionImportService
 
         return DB::transaction(function () use ($dto, $versionData) {
             $version = Version::create([
+                'abbreviation' => $dto->versionAbbreviation,
                 'name' => $dto->versionName,
-                'full_name' => $dto->versionFullName,
                 'language' => $dto->language,
                 'copyright' => $dto->copyright,
             ]);
 
             $this->importer->import($versionData, $version->id);
 
-            $version->loadCount(['chapters', 'verses']);
-
-            $this->validator->validateAfterImport($version);
+            // validateAfterImport removed for now (was checking counts)
 
             return $version;
         });

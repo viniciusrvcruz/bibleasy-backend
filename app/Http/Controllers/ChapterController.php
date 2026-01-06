@@ -5,13 +5,13 @@ namespace App\Http\Controllers;
 use App\Actions\Chapter\CompareChaptersAction;
 use App\Actions\Chapter\GetChapterAction;
 use App\Actions\Chapter\GetChaptersAction;
-use App\Enums\BookNameEnum;
+use App\Enums\BookAbbreviationEnum;
 use App\Http\Resources\ChapterResource;
 use Illuminate\Http\Request;
 
 class ChapterController extends Controller
 {
-    public function index(Request $request, BookNameEnum $book)
+    public function index(Request $request, BookAbbreviationEnum $book)
     {
         $versionId = $request->integer('version_id');
 
@@ -20,7 +20,7 @@ class ChapterController extends Controller
         return ChapterResource::collection($chapters);
     }
 
-    public function show(Request $request, BookNameEnum $book, int $number)
+    public function show(Request $request, BookAbbreviationEnum $book, int $number)
     {
         $versionId = $request->integer('version_id');
 
@@ -29,7 +29,7 @@ class ChapterController extends Controller
         return new ChapterResource($chapter);
     }
 
-    public function compare(Request $request, BookNameEnum $book, int $number)
+    public function compare(Request $request, BookAbbreviationEnum $book, int $number)
     {
         $verses = $request->string('verses');
         $versions = $request->string('versions');

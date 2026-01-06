@@ -2,7 +2,7 @@
 
 namespace App\Services\Version\Parsers;
 
-use App\Enums\BookNameEnum;
+use App\Enums\BookAbbreviationEnum;
 use App\Services\Version\DTOs\VersionDTO;
 use App\Services\Version\DTOs\BookDTO;
 use App\Services\Version\DTOs\ChapterDTO;
@@ -50,7 +50,7 @@ class JsonThiagoBodrukParser implements VersionParserInterface
 
     private function parseBook(array $bookChapters, int $index): BookDTO
     {
-        $bookName = BookNameEnum::cases()[$index]->value;
+        $bookName = BookAbbreviationEnum::cases()[$index]->value;
 
         $chapters = collect($bookChapters)->map(function ($verses, $chapterIndex) use ($bookName) {
             if (!is_array($verses)) {

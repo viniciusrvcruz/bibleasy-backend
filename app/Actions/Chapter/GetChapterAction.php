@@ -2,17 +2,18 @@
 
 namespace App\Actions\Chapter;
 
-use App\Enums\BookNameEnum;
+use App\Enums\BookAbbreviationEnum;
 use App\Models\Chapter;
 use Illuminate\Database\Eloquent\Builder;
 
 class GetChapterAction
 {
-    public function execute(int $number, BookNameEnum $bookName, int $versionId): Chapter
+    public function execute(int $number, BookAbbreviationEnum $bookName, int $versionId): Chapter
     {
         $chapter = Chapter::where('number', $number)
-            ->where('version_id', $versionId)
-            ->whereHas('book', fn(Builder $query) => $query->where('name', $bookName->value))
+            ->whereHas('book', fn(Builder $query) => $query
+                ->where('abbreviation', $bookName)
+                ->where('version_id', $versionId))
             ->with(['verses', 'book'])
             ->firstOrFail();
 
@@ -24,7 +25,7 @@ class GetChapterAction
 
     private function getAdjacentChapter(int $versionId, int $position): ?Chapter
     {
-        return Chapter::where('version_id', $versionId)
+        return Chapter::whereHas('book', fn(Builder $query) => $query->where('version_id', $versionId))
             ->where('position', $position)
             ->with(['verses', 'book'])
             ->first();

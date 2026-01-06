@@ -2,7 +2,7 @@
 
 namespace App\Enums;
 
-enum BookNameEnum: string
+enum BookAbbreviationEnum: string
 {
     case GEN = 'gen';
     case EXO = 'exo';
@@ -71,3 +71,4 @@ enum BookNameEnum: string
     case JUD = 'jud';
     case REV = 'rev';
 }
+

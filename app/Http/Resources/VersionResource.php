@@ -11,12 +11,10 @@ class VersionResource extends JsonResource
     {
         return [
             'id' => $this->id,
+            'abbreviation' => $this->abbreviation,
             'name' => $this->name,
-            'full_name' => $this->full_name,
             'language' => $this->language,
             'copyright' => $this->copyright,
-            'chapters_count' => $this->whenCounted('chapters'),
-            'verses_count' => $this->whenCounted('verses'),
         ];
     }
 }

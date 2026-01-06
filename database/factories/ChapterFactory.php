@@ -14,7 +14,6 @@ class ChapterFactory extends Factory
             'number' => 1,
             'position' => 1,
             'book_id' => Book::factory(),
-            'version_id' => Version::factory(),
         ];
     }
 }

@@ -16,7 +16,6 @@ class VersionController extends Controller
     {
         $versions = Version::query()
             ->when(request('language'), fn($q, $lang) => $q->where('language', $lang))
-            ->withCount(['chapters', 'verses'])
             ->get();
 
         return VersionResource::collection($versions);
@@ -27,8 +26,8 @@ class VersionController extends Controller
         $dto = new VersionImportDTO(
             content: $request->file('file')->getContent(),
             importerName: $request->input('parser'),
+            versionAbbreviation: $request->input('abbreviation'),
             versionName: $request->input('name'),
-            versionFullName: $request->input('full_name'),
             language: $request->input('language'),
             copyright: $request->input('copyright', ''),
             fileExtension: $request->file('file')->getExtension(),

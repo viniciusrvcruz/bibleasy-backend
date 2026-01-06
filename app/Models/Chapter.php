@@ -11,16 +11,11 @@ class Chapter extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['number', 'position', 'book_id', 'version_id'];
+    protected $fillable = ['number', 'position', 'book_id'];
 
     public function book(): BelongsTo
     {
         return $this->belongsTo(Book::class);
-    }
-
-    public function version(): BelongsTo
-    {
-        return $this->belongsTo(Version::class);
     }
 
     public function verses(): HasMany

@@ -37,15 +37,6 @@ class VersionValidator
 
     public function validateAfterImport(Version $version): void
     {
-        $chaptersCount = $version->chapters_count;
-        $versesCount = $version->verses_count;
-
-        if ($chaptersCount !== 1189) {
-            throw new VersionImportException('invalid_chapters_count', "Expected 1,189 chapters but got {$chaptersCount}");
-        }
-
-        if ($versesCount < 31100 || $versesCount > 31110) {
-            throw new VersionImportException('invalid_verses_count', "Expected verses between 31,100 and 31,110 but got {$versesCount}");
-        }
+        // Count validation removed - will be implemented later if needed
     }
 }

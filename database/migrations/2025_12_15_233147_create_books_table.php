@@ -1,5 +1,6 @@
 <?php
 
+use App\Enums\BookAbbreviationEnum;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -10,10 +11,12 @@ return new class extends Migration
     {
         Schema::create('books', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('version_id')->constrained()->cascadeOnDelete();
             $table->string('name');
+            $table->string('abbreviation')->index();
             $table->integer('order')->index();
 
-            $table->unique('name');
+            $table->unique(['version_id', 'abbreviation']);
         });
     }
 
