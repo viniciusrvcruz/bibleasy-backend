@@ -9,10 +9,26 @@ use Illuminate\Http\UploadedFile;
 beforeEach(function () {
     $this->seed(BookSeeder::class);
 
+    $this->allBookNames = [
+        'Gênesis', 'Êxodo', 'Levítico', 'Números', 'Deuteronômio', 'Josué', 'Juízes', 'Rute',
+        '1 Samuel', '2 Samuel', '1 Reis', '2 Reis', '1 Crônicas', '2 Crônicas', 'Esdras', 'Neemias',
+        'Ester', 'Jó', 'Salmos', 'Provérbios', 'Eclesiastes', 'Cânticos', 'Isaías', 'Jeremias',
+        'Lamentações', 'Ezequiel', 'Daniel', 'Oséias', 'Joel', 'Amós', 'Obadias', 'Jonas',
+        'Miquéias', 'Naum', 'Habacuque', 'Sofonias', 'Ageu', 'Zacarias', 'Malaquias', 'Mateus',
+        'Marcos', 'Lucas', 'João', 'Atos', 'Romanos', '1 Coríntios', '2 Coríntios', 'Gálatas',
+        'Efésios', 'Filipenses', 'Colossenses', '1 Tessalonicenses', '2 Tessalonicenses', '1 Timóteo',
+        '2 Timóteo', 'Tito', 'Filemom', 'Hebreus', 'Tiago', '1 Pedro', '2 Pedro', '1 João',
+        '2 João', '3 João', 'Judas', 'Apocalipse'
+    ];
+
     $this->validBibleData = function () {
-        $data = array_fill(0, 66, [
-            'chapters' => array_fill(0, 18, array_fill(0, 26, 'Sample verse text'))
-        ]);
+        $data = [];
+        for ($i = 0; $i < 66; $i++) {
+            $data[] = [
+                'name' => $this->allBookNames[$i],
+                'chapters' => array_fill(0, 18, array_fill(0, 26, 'Sample verse text'))
+            ];
+        }
 
         $data[0]['chapters'][] = array_fill(0, 216, 'Sample verse text');
 
@@ -36,7 +52,7 @@ describe('Version Import', function () {
         ];
 
         $response = $this->postJson('/api/admin/versions', [
-            'file' => $file,
+            'files' => [$file],
             'parser' => 'json_thiago_bodruk',
             ...$versionData,
         ]);
@@ -62,14 +78,19 @@ describe('Version Import', function () {
     it('rejects import with invalid book count', function () {
         $this->actAsAdmin();
 
-        $invalidJson = json_encode(array_fill(0, 50, [
-            'chapters' => array_fill(0, 10, array_fill(0, 10, 'Verse'))
-        ]));
+        $bookNames = array_slice($this->allBookNames, 0, 50);
+        
+        $invalidJson = json_encode(array_map(function ($name) {
+            return [
+                'name' => $name,
+                'chapters' => array_fill(0, 10, array_fill(0, 10, 'Verse'))
+            ];
+        }, $bookNames));
 
         $file = UploadedFile::fake()->createWithContent('bible.json', $invalidJson);
 
         $response = $this->postJson('/api/admin/versions', [
-            'file' => $file,
+            'files' => [$file],
             'parser' => 'json_thiago_bodruk',
             'abbreviation' => 'Invalid Version',
             'name' => 'Invalid Version Full Name',
@@ -80,7 +101,7 @@ describe('Version Import', function () {
         $response->assertStatus(422);
         $response->assertJson([
             'error' => 'invalid_books_count',
-            'message' => 'Expected 66 books but got 50'
+            'message' => 'Expected 66 books but got ' . count($bookNames)
         ]);
 
         $this->assertDatabaseMissing('versions', ['abbreviation' => 'Invalid Version']);
@@ -90,7 +111,7 @@ describe('Version Import', function () {
         $file = UploadedFile::fake()->create('bible.json');
 
         $response = $this->postJson('/api/admin/versions', [
-            'file' => $file,
+            'files' => [$file],
             'parser' => 'json_thiago_bodruk',
             'abbreviation' => 'Test',
             'name' => 'Test Full Name',
@@ -106,7 +127,7 @@ describe('Version Import', function () {
         $file = UploadedFile::fake()->create('bible.json');
 
         $response = $this->postJson('/api/admin/versions', [
-            'file' => $file,
+            'files' => [$file],
             'parser' => 'json_thiago_bodruk',
             'abbreviation' => 'Test',
             'name' => 'Test Full Name',
@@ -118,15 +139,18 @@ describe('Version Import', function () {
 
     it('rejects import with missing chapters', function () {
         $this->actAsAdmin();
-
-        $invalidJson = json_encode(array_fill(0, 66, [
-            'chapters' => []
-        ]));
+        
+        $invalidJson = json_encode(array_map(function ($name) {
+            return [
+                'name' => $name,
+                'chapters' => []
+            ];
+        }, $this->allBookNames));
 
         $file = UploadedFile::fake()->createWithContent('bible.json', $invalidJson);
 
         $response = $this->postJson('/api/admin/versions', [
-            'file' => $file,
+            'files' => [$file],
             'parser' => 'json_thiago_bodruk',
             'abbreviation' => 'Invalid Version',
             'name' => 'Invalid Version Full Name',
@@ -139,15 +163,18 @@ describe('Version Import', function () {
 
     it('rejects import with empty verses', function () {
         $this->actAsAdmin();
-
-        $invalidJson = json_encode(array_fill(0, 66, [
-            'chapters' => [['   ', '']]
-        ]));
+        
+        $invalidJson = json_encode(array_map(function ($name) {
+            return [
+                'name' => $name,
+                'chapters' => [['   ', '']]
+            ];
+        }, $this->allBookNames));
 
         $file = UploadedFile::fake()->createWithContent('bible.json', $invalidJson);
 
         $response = $this->postJson('/api/admin/versions', [
-            'file' => $file,
+            'files' => [$file],
             'parser' => 'json_thiago_bodruk',
             'abbreviation' => 'Invalid Version',
             'name' => 'Invalid Version Full Name',
@@ -164,7 +191,7 @@ describe('Version Import', function () {
         $file = UploadedFile::fake()->create('bible.json');
 
         $response = $this->postJson('/api/admin/versions', [
-            'file' => $file,
+            'files' => [$file],
             'parser' => 'invalid_format',
             'name' => 'Test',
             'language' => VersionLanguageEnum::ENGLISH->value,
@@ -182,7 +209,7 @@ describe('Version Import', function () {
         $file = UploadedFile::fake()->createWithContent('bible.json', ($this->validBibleData)());
 
         $response = $this->postJson('/api/admin/versions', [
-            'file' => $file,
+            'files' => [$file],
             'parser' => 'json_thiago_bodruk',
             'abbreviation' => 'Position Test',
             'name' => 'Position Test Full Name',
@@ -209,7 +236,7 @@ describe('Version Import', function () {
         $file2 = UploadedFile::fake()->createWithContent('bible2.json', $validJson);
 
         $this->postJson('/api/admin/versions', [
-            'file' => $file1,
+            'files' => [$file1],
             'parser' => 'json_thiago_bodruk',
             'abbreviation' => 'Version 1',
             'name' => 'Version 1 Full Name',
@@ -217,7 +244,7 @@ describe('Version Import', function () {
         ])->assertStatus(201);
 
         $this->postJson('/api/admin/versions', [
-            'file' => $file2,
+            'files' => [$file2],
             'parser' => 'json_thiago_bodruk',
             'abbreviation' => 'Version 2',
             'name' => 'Version 2 Full Name',

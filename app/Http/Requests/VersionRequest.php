@@ -15,7 +15,12 @@ class VersionRequest extends FormRequest
         $versionId = $this->route('version');
 
         return [
-            'file' => [
+            'files' => [
+                $isStore ? 'required' : 'prohibited',
+                'array',
+                'min:1'
+            ],
+            'files.*' => [
                 $isStore ? 'required' : 'prohibited',
                 'file'
             ],

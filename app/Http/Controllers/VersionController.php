@@ -6,7 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\VersionRequest;
 use App\Http\Resources\VersionResource;
 use App\Models\Version;
-use App\Services\Version\DTOs\VersionImportDTO;
+use App\Services\Version\Factories\VersionImportDTOFactory;
 use App\Services\Version\VersionImportService;
 use Illuminate\Http\Response;
 
@@ -23,15 +23,7 @@ class VersionController extends Controller
 
     public function store(VersionRequest $request, VersionImportService $service)
     {
-        $dto = new VersionImportDTO(
-            content: $request->file('file')->getContent(),
-            importerName: $request->input('parser'),
-            versionAbbreviation: $request->input('abbreviation'),
-            versionName: $request->input('name'),
-            language: $request->input('language'),
-            copyright: $request->input('copyright', ''),
-            fileExtension: $request->file('file')->getExtension(),
-        );
+        $dto = VersionImportDTOFactory::fromRequest($request);
 
         $version = $service->import($dto);
 

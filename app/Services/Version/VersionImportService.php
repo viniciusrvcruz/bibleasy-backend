@@ -20,7 +20,7 @@ class VersionImportService
     {
         $parser = VersionParserFactory::make($dto->importerName);
 
-        $versionData = $parser->parse($dto->content);
+        $versionData = $parser->parse($dto->files);
 
         $this->validator->validateBeforeImport($versionData);
 

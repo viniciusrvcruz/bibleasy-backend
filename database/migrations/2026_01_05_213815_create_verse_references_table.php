@@ -17,7 +17,7 @@ return new class extends Migration
             $table->integer('target_chapter')->nullable();
             $table->integer('target_verse')->nullable();
             $table->timestamps();
-            
+
             $table->unique(['verse_id', 'slug']);
             $table->index('verse_id');
         });
