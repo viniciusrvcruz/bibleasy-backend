@@ -33,7 +33,7 @@ describe('Chapter Index', function () {
             Verse::factory()->create(['chapter_id' => $chapter2->id, 'number' => $num]);
         }
 
-        $response = $this->getJson("/api/books/{$book->abbreviation->value}/chapters?version_id={$version->id}");
+        $response = $this->getJson("/api/versions/{$version->id}/books/{$book->abbreviation->value}/chapters");
 
         $response->assertStatus(200);
         $response->assertJsonCount(2);
@@ -52,7 +52,7 @@ describe('Chapter Index', function () {
         Chapter::factory()->create(['number' => 1, 'book_id' => $book->id, 'position' => 1]);
         Chapter::factory()->create(['number' => 2, 'book_id' => $book->id, 'position' => 2]);
 
-        $response = $this->getJson("/api/books/{$book->abbreviation->value}/chapters?version_id={$version->id}");
+        $response = $this->getJson("/api/versions/{$version->id}/books/{$book->abbreviation->value}/chapters");
 
         $response->assertStatus(200);
         $response->assertJsonPath('0.number', 1);
@@ -81,7 +81,7 @@ describe('Chapter Index', function () {
             Chapter::factory()->create(['book_id' => $book2->id, 'position' => $i, 'number' => $i]);
         }
 
-        $response = $this->getJson("/api/books/{$book1->abbreviation->value}/chapters?version_id={$version1->id}");
+        $response = $this->getJson("/api/versions/{$version1->id}/books/{$book1->abbreviation->value}/chapters");
 
         $response->assertStatus(200);
         $response->assertJsonCount(3);
@@ -90,7 +90,7 @@ describe('Chapter Index', function () {
     it('returns 404 when book does not exist', function () {
         $version = Version::factory()->create();
 
-        $response = $this->getJson("/api/books/invalid-book/chapters?version_id={$version->id}");
+        $response = $this->getJson("/api/versions/{$version->id}/books/invalid-book/chapters");
 
         $response->assertStatus(404);
     });
@@ -103,7 +103,7 @@ describe('Chapter Index', function () {
             'name' => BookAbbreviationEnum::GEN->value,
         ]);
 
-        $response = $this->getJson("/api/books/{$book->abbreviation->value}/chapters?version_id={$version->id}");
+        $response = $this->getJson("/api/versions/{$version->id}/books/{$book->abbreviation->value}/chapters");
 
         $response->assertStatus(200);
         $response->assertJsonCount(0);

@@ -7,12 +7,18 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/versions', [VersionController::class, 'index']);
-Route::get('/versions/{version}/books', [BookController::class, 'index']);
+
+Route::prefix('versions/{version}')->group(function () {
+    Route::get('/books', [BookController::class, 'index']);
+    
+    Route::prefix('books/{abbreviation}')->group(function () {
+        Route::get('/chapters', [ChapterController::class, 'index']);
+        Route::get('/chapters/{number}', [ChapterController::class, 'show']);
+    });
+});
 
 Route::prefix('books/{abbreviation}')->group(function () {
-    Route::get('/chapters', [ChapterController::class, 'index']);
-    Route::get('/chapters/{number}', [ChapterController::class, 'show']);
-    Route::get('/chapters/{number}/compare', [ChapterController::class, 'compare']);
+    Route::get('/chapters/{number}/comparison', [ChapterController::class, 'comparison']);
 });
 
 Route::prefix('admin')->middleware('auth:admins')->group(function () {

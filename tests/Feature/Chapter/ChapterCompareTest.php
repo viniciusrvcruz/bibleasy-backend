@@ -27,7 +27,7 @@ describe('Chapter Compare', function () {
         Verse::factory()->create(['chapter_id' => $chapter1->id, 'number' => 1]);
         Verse::factory()->create(['chapter_id' => $chapter2->id, 'number' => 1]);
 
-        $response = $this->getJson("/api/books/{$book1->abbreviation->value}/chapters/1/compare?verses=1&versions={$version1->id},{$version2->id}");
+        $response = $this->getJson("/api/books/{$book1->abbreviation->value}/chapters/1/comparison?verses=1&versions={$version1->id},{$version2->id}");
 
         $response->assertStatus(200);
         $response->assertJsonCount(2);
@@ -46,7 +46,7 @@ describe('Chapter Compare', function () {
         Verse::factory()->create(['chapter_id' => $chapter->id, 'number' => 2]);
         Verse::factory()->create(['chapter_id' => $chapter->id, 'number' => 3]);
 
-        $response = $this->getJson("/api/books/{$book->abbreviation->value}/chapters/1/compare?verses=1-3&versions={$version->id}");
+        $response = $this->getJson("/api/books/{$book->abbreviation->value}/chapters/1/comparison?verses=1-3&versions={$version->id}");
 
         $response->assertStatus(200);
         $response->assertJsonCount(3, '0.verses');

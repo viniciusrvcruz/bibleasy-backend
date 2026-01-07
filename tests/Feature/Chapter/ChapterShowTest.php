@@ -21,7 +21,7 @@ describe('Chapter Show', function () {
         ]);
         Verse::factory()->count(3)->create(['chapter_id' => $chapter->id]);
 
-        $response = $this->getJson("/api/books/{$book->abbreviation->value}/chapters/1?version_id={$version->id}");
+        $response = $this->getJson("/api/versions/{$version->id}/books/{$book->abbreviation->value}/chapters/1");
 
         $response->assertStatus(200);
         $response->assertJsonStructure([
@@ -33,7 +33,7 @@ describe('Chapter Show', function () {
         $version = Version::factory()->create();
         $book = BookAbbreviationEnum::GEN;
 
-        $response = $this->getJson("/api/books/gen/chapters/999?version_id={$version->id}");
+        $response = $this->getJson("/api/versions/{$version->id}/books/gen/chapters/999");
 
         $response->assertStatus(404);
     });
@@ -50,7 +50,7 @@ describe('Chapter Show', function () {
         Chapter::factory()->create(['number' => 2, 'book_id' => $book->id, 'position' => 2]);
         Chapter::factory()->create(['number' => 3, 'book_id' => $book->id, 'position' => 3]);
 
-        $response = $this->getJson("/api/books/{$book->abbreviation->value}/chapters/2?version_id={$version->id}");
+        $response = $this->getJson("/api/versions/{$version->id}/books/{$book->abbreviation->value}/chapters/2");
 
         $response->assertStatus(200);
         $response->assertJsonStructure(['previous', 'next']);
