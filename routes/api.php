@@ -1,12 +1,13 @@
 <?php
 
+use App\Http\Controllers\BookController;
 use App\Http\Controllers\ChapterController;
 use App\Http\Controllers\VersionController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/versions', [VersionController::class, 'index']);
-Route::get('/versions/{version}/books', [VersionController::class, 'books']);
+Route::get('/versions/{version}/books', [BookController::class, 'index']);
 
 Route::prefix('books/{abbreviation}')->group(function () {
     Route::get('/chapters', [ChapterController::class, 'index']);
