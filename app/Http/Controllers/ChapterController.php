@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Actions\Chapter\CompareChaptersAction;
 use App\Actions\Chapter\GetChapterAction;
-use App\Actions\Chapter\GetChaptersAction;
 use App\Enums\BookAbbreviationEnum;
 use App\Http\Resources\ChapterResource;
 use App\Models\Version;
@@ -12,16 +11,6 @@ use Illuminate\Http\Request;
 
 class ChapterController extends Controller
 {
-    public function index(Version $version, BookAbbreviationEnum $abbreviation)
-    {
-        $chapters = app(GetChaptersAction::class)->execute(
-            abbreviation: $abbreviation,
-            version: $version
-        );
-
-        return ChapterResource::collection($chapters);
-    }
-
     public function show(Version $version, BookAbbreviationEnum $abbreviation, int $number)
     {
         $chapter = app(GetChapterAction::class)->execute(

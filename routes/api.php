@@ -12,7 +12,6 @@ Route::prefix('versions/{version}')->group(function () {
     Route::get('/books', [BookController::class, 'index']);
     
     Route::prefix('books/{abbreviation}')->group(function () {
-        Route::get('/chapters', [ChapterController::class, 'index']);
         Route::get('/chapters/{number}', [ChapterController::class, 'show']);
     });
 });
