@@ -8,9 +8,9 @@ use Illuminate\Database\Eloquent\Collection;
 
 class GetChaptersAction
 {
-    public function execute(BookAbbreviationEnum $bookName, int $versionId): Collection
+    public function execute(BookAbbreviationEnum $abbreviation, int $versionId): Collection
     {
-        $book = Book::where('abbreviation', $bookName)
+        $book = Book::where('abbreviation', $abbreviation)
             ->where('version_id', $versionId)
             ->firstOrFail();
 

@@ -8,11 +8,11 @@ use Illuminate\Database\Eloquent\Builder;
 
 class GetChapterAction
 {
-    public function execute(int $number, BookAbbreviationEnum $bookName, int $versionId): Chapter
+    public function execute(int $number, BookAbbreviationEnum $abbreviation, int $versionId): Chapter
     {
         $chapter = Chapter::where('number', $number)
             ->whereHas('book', fn(Builder $query) => $query
-                ->where('abbreviation', $bookName)
+                ->where('abbreviation', $abbreviation)
                 ->where('version_id', $versionId))
             ->with(['verses', 'book'])
             ->firstOrFail();

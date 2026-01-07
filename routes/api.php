@@ -6,8 +6,9 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/versions', [VersionController::class, 'index']);
+Route::get('/versions/{version}/books', [VersionController::class, 'books']);
 
-Route::prefix('books/{book}')->group(function () {
+Route::prefix('books/{abbreviation}')->group(function () {
     Route::get('/chapters', [ChapterController::class, 'index']);
     Route::get('/chapters/{number}', [ChapterController::class, 'show']);
     Route::get('/chapters/{number}/compare', [ChapterController::class, 'compare']);

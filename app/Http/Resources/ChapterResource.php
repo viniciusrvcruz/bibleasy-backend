@@ -13,6 +13,7 @@ class ChapterResource extends JsonResource
             'id' => $this->id,
             'number' => $this->number,
             'position' => $this->position,
+            'verses_count' => $this->whenCounted('verses'),
             'book' => new BookResource($this->whenLoaded('book')),
             'verses' => VerseResource::collection($this->whenLoaded('verses')),
             'previous' => new self($this->whenLoaded('previous')),

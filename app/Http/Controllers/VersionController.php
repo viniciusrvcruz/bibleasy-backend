@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\VersionRequest;
+use App\Http\Resources\BookResource;
 use App\Http\Resources\VersionResource;
 use App\Models\Version;
 use App\Services\Version\Factories\VersionImportDTOFactory;
@@ -19,6 +20,19 @@ class VersionController extends Controller
             ->get();
 
         return VersionResource::collection($versions);
+    }
+
+    public function books(Version $version)
+    {
+        $books = $version->books()
+            ->with(['chapters' => function ($query) {
+                $query->withCount('verses')
+                    ->orderBy('number');
+            }])
+            ->orderBy('order')
+            ->get();
+
+        return BookResource::collection($books);
     }
 
     public function store(VersionRequest $request, VersionImportService $service)

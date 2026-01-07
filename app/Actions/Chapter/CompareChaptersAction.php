@@ -9,14 +9,14 @@ use Illuminate\Support\Collection;
 
 class CompareChaptersAction
 {
-    public function execute(string $verses, int $number, BookAbbreviationEnum $bookName, string $versions): Collection
+    public function execute(string $verses, int $number, BookAbbreviationEnum $abbreviation, string $versions): Collection
     {
         $versionIds = $this->parseVersions($versions);
         $verseNumbers = $this->parseVerses($verses);
 
         return Chapter::where('number', $number)
             ->whereHas('book', fn(Builder $query) => $query
-                ->where('abbreviation', $bookName)
+                ->where('abbreviation', $abbreviation)
                 ->whereIn('version_id', $versionIds))
             ->with([
                 'verses' => fn ($query) => $query->when($verseNumbers, fn($q) => $q->whereIn('number', $verseNumbers)),
