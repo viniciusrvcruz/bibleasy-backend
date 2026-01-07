@@ -14,10 +14,12 @@ class BookController extends Controller
     public function index(Version $version)
     {
         $books = $version->books()
-            ->with(['chapters' => function ($query) {
-                $query->withCount('verses')
-                    ->orderBy('number');
-            }])
+            ->with([
+                'chapters' => function ($query) {
+                    $query->withCount('verses')
+                        ->orderBy('number');
+                },
+            ])
             ->orderBy('order')
             ->get();
 

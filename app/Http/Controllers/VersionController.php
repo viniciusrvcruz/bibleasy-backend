@@ -27,7 +27,9 @@ class VersionController extends Controller
 
         $version = $service->import($dto);
 
-        return VersionResource::make($version)->response()->setStatusCode(Response::HTTP_CREATED);
+        return VersionResource::make($version)
+            ->response()
+            ->setStatusCode(Response::HTTP_CREATED);
     }
 
     public function update(VersionRequest $request, Version $version)
