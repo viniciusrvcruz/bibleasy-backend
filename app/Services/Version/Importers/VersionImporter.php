@@ -2,18 +2,22 @@
 
 namespace App\Services\Version\Importers;
 
+use App\Enums\BookAbbreviationEnum;
 use App\Models\Book;
 use App\Models\Chapter;
 use App\Models\Verse;
+use App\Services\Version\DTOs\BookDTO;
 use App\Services\Version\DTOs\VersionDTO;
+use Illuminate\Support\Collection;
 
 class VersionImporter
 {
     public function import(VersionDTO $dto, int $versionId): void
     {
-        $globalPosition = 1;
+        $books = $this->sortBooks($dto->books);
+        $globalChapterPosition = 1;
 
-        foreach ($dto->books as $index => $bookDTO) {
+        foreach ($books as $index => $bookDTO) {
             $book = Book::create([
                 'version_id' => $versionId,
                 'name' => $bookDTO->name,
@@ -24,7 +28,7 @@ class VersionImporter
             foreach ($bookDTO->chapters as $chapterDTO) {
                 $chapter = Chapter::create([
                     'number' => $chapterDTO->number,
-                    'position' => $globalPosition++,
+                    'position' => $globalChapterPosition++,
                     'book_id' => $book->id,
                 ]);
 
@@ -39,5 +43,22 @@ class VersionImporter
                 Verse::insert($verses);
             }
         }
+    }
+
+    /**
+     * Sort books by their position in BookAbbreviationEnum
+     *
+     * @param Collection<int, BookDTO> $books
+     * @return Collection<int, BookDTO>
+     */
+    private function sortBooks(Collection $books): Collection
+    {
+        $enumCases = BookAbbreviationEnum::cases();
+
+        return $books->sortBy(function (BookDTO $book) use ($enumCases) {
+            $position = array_search($book->abbreviation, $enumCases, true);
+
+            return $position;
+        })->values();
     }
 }
