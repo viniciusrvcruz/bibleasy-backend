@@ -12,7 +12,6 @@ class ChapterFactory extends Factory
     {
         return [
             'number' => 1,
-            'position' => 1,
             'book_id' => Book::factory(),
         ];
     }

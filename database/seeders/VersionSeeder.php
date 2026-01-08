@@ -139,7 +139,6 @@ class VersionSeeder extends Seeder
                 $chapter = Chapter::create([
                     'book_id' => $book->id,
                     'number' => $chapterNum,
-                    'position' => $chapterNum,
                 ]);
 
                 // Create a few verses per chapter (5-10 verses)

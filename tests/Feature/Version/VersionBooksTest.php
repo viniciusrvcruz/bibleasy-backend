@@ -27,7 +27,6 @@ describe('Version Books', function () {
         $chapter1 = Chapter::factory()->create([
             'number' => 1,
             'book_id' => $book1->id,
-            'position' => 1,
         ]);
         foreach (range(1, 31) as $num) {
             Verse::factory()->create(['chapter_id' => $chapter1->id, 'number' => $num]);
@@ -36,7 +35,6 @@ describe('Version Books', function () {
         $chapter2 = Chapter::factory()->create([
             'number' => 2,
             'book_id' => $book1->id,
-            'position' => 2,
         ]);
         foreach (range(1, 25) as $num) {
             Verse::factory()->create(['chapter_id' => $chapter2->id, 'number' => $num]);
@@ -45,7 +43,6 @@ describe('Version Books', function () {
         $chapter3 = Chapter::factory()->create([
             'number' => 1,
             'book_id' => $book2->id,
-            'position' => 1,
         ]);
         foreach (range(1, 22) as $num) {
             Verse::factory()->create(['chapter_id' => $chapter3->id, 'number' => $num]);
@@ -61,7 +58,7 @@ describe('Version Books', function () {
                 'name',
                 'order',
                 'chapters' => [
-                    ['id', 'number', 'position', 'verses_count']
+                    ['id', 'number', 'verses_count']
                 ]
             ]
         ]);
@@ -119,9 +116,9 @@ describe('Version Books', function () {
             'version_id' => $version->id,
         ]);
         
-        Chapter::factory()->create(['number' => 3, 'book_id' => $book->id, 'position' => 3]);
-        Chapter::factory()->create(['number' => 1, 'book_id' => $book->id, 'position' => 1]);
-        Chapter::factory()->create(['number' => 2, 'book_id' => $book->id, 'position' => 2]);
+        Chapter::factory()->create(['number' => 3, 'book_id' => $book->id]);
+        Chapter::factory()->create(['number' => 1, 'book_id' => $book->id]);
+        Chapter::factory()->create(['number' => 2, 'book_id' => $book->id]);
 
         $response = $this->getJson("/api/versions/{$version->id}/books");
 
@@ -192,7 +189,6 @@ describe('Version Books', function () {
         $chapter = Chapter::factory()->create([
             'number' => 1,
             'book_id' => $book->id,
-            'position' => 1,
         ]);
 
         $response = $this->getJson("/api/versions/{$version->id}/books");

@@ -11,7 +11,7 @@ class Chapter extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['number', 'position', 'book_id'];
+    protected $fillable = ['number', 'book_id'];
 
     public function book(): BelongsTo
     {

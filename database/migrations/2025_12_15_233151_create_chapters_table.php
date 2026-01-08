@@ -11,7 +11,6 @@ return new class extends Migration
         Schema::create('chapters', function (Blueprint $table) {
             $table->id();
             $table->integer('number');
-            $table->integer('position');
             $table->foreignId('book_id')->constrained()->cascadeOnDelete();
             $table->timestamps();
 

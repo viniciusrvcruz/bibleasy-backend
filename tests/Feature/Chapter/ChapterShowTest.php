@@ -17,7 +17,6 @@ describe('Chapter Show', function () {
         $chapter = Chapter::factory()->create([
             'number' => 1,
             'book_id' => $book->id,
-            'position' => 1,
         ]);
         Verse::factory()->count(3)->create(['chapter_id' => $chapter->id]);
 
@@ -25,7 +24,7 @@ describe('Chapter Show', function () {
 
         $response->assertStatus(200);
         $response->assertJsonStructure([
-            'id', 'number', 'position', 'book', 'verses' => [['id', 'number', 'text']]
+            'id', 'number', 'book', 'verses' => [['id', 'number', 'text']]
         ]);
     });
 
@@ -36,23 +35,5 @@ describe('Chapter Show', function () {
         $response = $this->getJson("/api/versions/{$version->id}/books/gen/chapters/999");
 
         $response->assertStatus(404);
-    });
-
-    it('includes previous and next chapters', function () {
-        $version = Version::factory()->create();
-        $book = Book::factory()->create([
-            'version_id' => $version->id,
-            'abbreviation' => BookAbbreviationEnum::GEN,
-            'name' => BookAbbreviationEnum::GEN->value,
-        ]);
-        
-        Chapter::factory()->create(['number' => 1, 'book_id' => $book->id, 'position' => 1]);
-        Chapter::factory()->create(['number' => 2, 'book_id' => $book->id, 'position' => 2]);
-        Chapter::factory()->create(['number' => 3, 'book_id' => $book->id, 'position' => 3]);
-
-        $response = $this->getJson("/api/versions/{$version->id}/books/{$book->abbreviation->value}/chapters/2");
-
-        $response->assertStatus(200);
-        $response->assertJsonStructure(['previous', 'next']);
     });
 });

@@ -15,7 +15,6 @@ class VersionImporter
     public function import(VersionDTO $dto, int $versionId): void
     {
         $books = $this->sortBooks($dto->books);
-        $globalChapterPosition = 1;
 
         foreach ($books as $index => $bookDTO) {
             $book = Book::create([
@@ -28,7 +27,6 @@ class VersionImporter
             foreach ($bookDTO->chapters as $chapterDTO) {
                 $chapter = Chapter::create([
                     'number' => $chapterDTO->number,
-                    'position' => $globalChapterPosition++,
                     'book_id' => $book->id,
                 ]);
 
