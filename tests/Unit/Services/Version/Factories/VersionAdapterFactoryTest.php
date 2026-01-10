@@ -15,13 +15,13 @@ describe('VersionAdapterFactory', function () {
 
     it('throws exception for unknown format', function () {
         VersionAdapterFactory::make('unknown');
-    })->throws(VersionImportException::class, "Adapter for format 'unknown' not found");
+    })->throws(VersionImportException::class, "Adapter for name 'unknown' not found");
 
-    it('returns available formats', function () {
-        $formats = VersionAdapterFactory::getAvailableFormats();
+    it('returns available adapter names', function () {
+        $adapterNames = VersionAdapterFactory::getAvailableAdapterNames();
 
-        expect($formats)->toBeArray()
-            ->and($formats)->toContain('json_thiago_bodruk');
+        expect($adapterNames)->toBeArray()
+            ->and($adapterNames)->toContain('json_thiago_bodruk');
     });
 });
 

@@ -27,7 +27,7 @@ class VersionRequest extends FormRequest
             'adapter' => [
                 $isStore ? 'required' : 'prohibited',
                 'string',
-                Rule::in(VersionAdapterFactory::getAvailableFormats())
+                Rule::in(VersionAdapterFactory::getAvailableAdapterNames())
             ],
             'abbreviation' => [
                 'required',

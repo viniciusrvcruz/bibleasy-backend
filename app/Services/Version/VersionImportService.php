@@ -34,8 +34,6 @@ class VersionImportService
 
             $this->importer->import($versionData, $version->id);
 
-            // validateAfterImport removed for now (was checking counts)
-
             return $version;
         });
     }

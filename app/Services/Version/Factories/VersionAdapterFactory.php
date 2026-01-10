@@ -12,18 +12,18 @@ class VersionAdapterFactory
         'json_thiago_bodruk' => JsonThiagoBodrukAdapter::class,
     ];
 
-    public static function make(string $format): VersionAdapterInterface
+    public static function make(string $name): VersionAdapterInterface
     {
-        $adapterClass = self::$adapters[$format] ?? null;
+        $adapterClass = self::$adapters[$name] ?? null;
 
         if (!$adapterClass) {
-            throw new VersionImportException('adapter_not_found', "Adapter for format '{$format}' not found");
+            throw new VersionImportException('adapter_not_found', "Adapter for name '{$name}' not found");
         }
 
         return app($adapterClass);
     }
 
-    public static function getAvailableFormats(): array
+    public static function getAvailableAdapterNames(): array
     {
         return array_keys(self::$adapters);
     }
