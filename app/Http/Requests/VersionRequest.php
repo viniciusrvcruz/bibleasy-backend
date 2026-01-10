@@ -32,11 +32,13 @@ class VersionRequest extends FormRequest
             'abbreviation' => [
                 'required',
                 'string',
+                'max:20',
                 Rule::unique('versions', 'abbreviation')->where('language', $this->input('language'))->ignore($versionId)
             ],
             'name' => [
                 'required',
-                'string'
+                'string',
+                'max:255'
             ],
             'language' => [
                 'required',
@@ -45,7 +47,8 @@ class VersionRequest extends FormRequest
             ],
             'copyright' => [
                 'nullable',
-                'string'
+                'string',
+                'max:2000'
             ],
         ];
     }
