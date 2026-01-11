@@ -19,7 +19,10 @@ class GetChapterAction
             ->whereHas('book', fn(Builder $query) => $query
                 ->where('abbreviation', $abbreviation)
                 ->where('version_id', $version->id))
-            ->with(['verses', 'book'])
+            ->with([
+                'verses.references',
+                'book',
+            ])
             ->firstOrFail();
     }
 }

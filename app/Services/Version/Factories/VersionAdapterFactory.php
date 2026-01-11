@@ -4,12 +4,14 @@ namespace App\Services\Version\Factories;
 
 use App\Services\Version\Interfaces\VersionAdapterInterface;
 use App\Services\Version\Adapters\JsonThiagoBodrukAdapter;
+use App\Services\Version\Adapters\UsfmAdapter;
 use App\Exceptions\Version\VersionImportException;
 
 class VersionAdapterFactory
 {
     private static array $adapters = [
         'json_thiago_bodruk' => JsonThiagoBodrukAdapter::class,
+        'usfm' => UsfmAdapter::class,
     ];
 
     public static function make(string $name): VersionAdapterInterface
