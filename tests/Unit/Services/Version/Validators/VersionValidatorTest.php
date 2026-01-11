@@ -176,7 +176,7 @@ describe('VersionValidator', function () {
         $dto = new VersionDTO($books);
 
         $this->validator->validate($dto);
-    })->throws(VersionImportException::class, 'has empty or null slug');
+    })->throws(VersionImportException::class, 'has empty slug');
 
     it('throws exception when reference text is empty', function () {
         $references = collect([
@@ -198,7 +198,7 @@ describe('VersionValidator', function () {
         $dto = new VersionDTO($books);
 
         $this->validator->validate($dto);
-    })->throws(VersionImportException::class, 'has empty or null text');
+    })->throws(VersionImportException::class, 'has empty text');
 
     it('throws exception when reference slug is missing in verse text', function () {
         $references = collect([
@@ -236,6 +236,82 @@ describe('VersionValidator', function () {
                 collect([
                     new ChapterDTO(1, collect([
                         new VerseDTO(1, 'Text {{1}} with multiple {{2}} references {{3}}', $references)
+                    ]))
+                ])
+            )
+        ]);
+
+        $dto = new VersionDTO($books);
+
+        expect(fn() => $this->validator->validate($dto))->not->toThrow(Exception::class);
+    });
+
+    it('throws exception when verse text contains USFM markers', function () {
+        $books = collect([
+            new BookDTO(
+                'Genesis',
+                BookAbbreviationEnum::GEN,
+                collect([
+                    new ChapterDTO(1, collect([
+                        new VerseDTO(1, 'Verse text with \f marker')
+                    ]))
+                ])
+            )
+        ]);
+
+        $dto = new VersionDTO($books);
+
+        $this->validator->validate($dto);
+    })->throws(VersionImportException::class, 'contains USFM markers');
+
+    it('throws exception when verse text contains malformed placeholders', function () {
+        $books = collect([
+            new BookDTO(
+                'Genesis',
+                BookAbbreviationEnum::GEN,
+                collect([
+                    new ChapterDTO(1, collect([
+                        new VerseDTO(1, 'Verse text with {invalid} placeholder')
+                    ]))
+                ])
+            )
+        ]);
+
+        $dto = new VersionDTO($books);
+
+        $this->validator->validate($dto);
+    })->throws(VersionImportException::class, 'contains invalid characters or malformed placeholders');
+
+    it('throws exception when verse text contains unclosed curly braces', function () {
+        $books = collect([
+            new BookDTO(
+                'Genesis',
+                BookAbbreviationEnum::GEN,
+                collect([
+                    new ChapterDTO(1, collect([
+                        new VerseDTO(1, 'Verse text with {{unclosed placeholder')
+                    ]))
+                ])
+            )
+        ]);
+
+        $dto = new VersionDTO($books);
+
+        $this->validator->validate($dto);
+    })->throws(VersionImportException::class, 'contains invalid characters or malformed placeholders');
+
+    it('validates verse text with only text and valid placeholders', function () {
+        $references = collect([
+            new VerseReferenceDTO('1', 'Reference text')
+        ]);
+
+        $books = collect([
+            new BookDTO(
+                'Genesis',
+                BookAbbreviationEnum::GEN,
+                collect([
+                    new ChapterDTO(1, collect([
+                        new VerseDTO(1, 'Clean verse text with {{1}} placeholder', $references)
                     ]))
                 ])
             )

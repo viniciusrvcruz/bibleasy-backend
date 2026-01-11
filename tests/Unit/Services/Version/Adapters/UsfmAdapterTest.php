@@ -284,4 +284,57 @@ USFM;
 
         expect($result->books->first()->abbreviation)->toBe(BookAbbreviationEnum::MAT);
     });
+
+    it('removes formatting markers from verse text', function () {
+        $usfmContent = <<<'USFM'
+\h Mateus
+\c 8
+\v 27 Os discípulos ficaram admirados e disseram: "Quem \it é\it* este? Até mesmo os ventos e as ondas lhe obedecem!"
+USFM;
+
+        $file = new FileDTO(
+            content: $usfmContent,
+            fileName: 'mat.usfm',
+            extension: 'usfm'
+        );
+
+        $adapter = new UsfmAdapter();
+        $result = $adapter->adapt([$file]);
+
+        $verse = $result->books->first()->chapters->first()->verses->first();
+
+        expect($verse->text)->not->toContain('\it')
+            ->and($verse->text)->not->toContain('\it*')
+            ->and($verse->text)->toContain('é')
+            ->and($verse->text)->toContain('este?');
+    });
+
+    it('removes multiple formatting markers from verse text', function () {
+        $usfmContent = <<<'USFM'
+\h Mateus
+\c 1
+\v 1 Texto com \it itálico\it* e \bd negrito\bd* e \em ênfase\em*
+USFM;
+
+        $file = new FileDTO(
+            content: $usfmContent,
+            fileName: 'mat.usfm',
+            extension: 'usfm'
+        );
+
+        $adapter = new UsfmAdapter();
+        $result = $adapter->adapt([$file]);
+
+        $verse = $result->books->first()->chapters->first()->verses->first();
+
+        expect($verse->text)->not->toContain('\it')
+            ->and($verse->text)->not->toContain('\it*')
+            ->and($verse->text)->not->toContain('\bd')
+            ->and($verse->text)->not->toContain('\bd*')
+            ->and($verse->text)->not->toContain('\em')
+            ->and($verse->text)->not->toContain('\em*')
+            ->and($verse->text)->toContain('itálico')
+            ->and($verse->text)->toContain('negrito')
+            ->and($verse->text)->toContain('ênfase');
+    });
 });

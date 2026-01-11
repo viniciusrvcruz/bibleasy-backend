@@ -123,6 +123,9 @@ class UsfmAdapter implements VersionAdapterInterface
                 // Extract references and clean verse text, replacing references with {{slug}}
                 [$references, $cleanText] = $this->processReferences($verseContent);
 
+                // Remove USFM formatting markers
+                $cleanText = $this->removeFormattingMarkers($cleanText);
+
                 $currentVerses->push(new VerseDTO(
                     $verseNumber,
                     $cleanText,
@@ -200,5 +203,21 @@ class UsfmAdapter implements VersionAdapterInterface
         $cleanText = preg_replace('/\s+/', ' ', $cleanText);
 
         return [$references, trim($cleanText)];
+    }
+
+    /**
+     * Remove USFM formatting markers from text
+     * Removes markers like \it, \it*, \bd, \bd*, \em, \em*, etc.
+     */
+    private function removeFormattingMarkers(string $text): string
+    {
+        // Remove all USFM markers that follow the pattern \marker or \marker*
+        $text = preg_replace('/\\\\[a-z]+\*/', '', $text); // Remove closing markers (e.g., \it*)
+        $text = preg_replace('/\\\\[a-z]+(?:\s+|$)/', '', $text); // Remove opening markers (e.g., \it)
+
+        // Clean up extra spaces that might have been left
+        $text = preg_replace('/\s+/', ' ', $text);
+
+        return trim($text);
     }
 }
