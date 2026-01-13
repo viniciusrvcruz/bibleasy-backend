@@ -95,17 +95,39 @@ class UsfmAdapter implements VersionAdapterInterface
             }
 
             // Check for \p marker at the start of line
+            // \p can be empty (paragraph break) or contain text (verse continuation)
             if (str_starts_with($line, '\\p')) {
-                // Add \n to the last verse of the previous paragraph
-                if ($currentVerses->isNotEmpty()) {
-                    $lastVerse = $currentVerses->last();
-                    $currentVerses->pop();
-                    $currentVerses->push(new VerseDTO(
-                        $lastVerse->number,
-                        $lastVerse->text . "\n",
-                        $lastVerse->references
-                    ));
+                // If no verse exists, ignore \p marker
+                if ($currentVerses->isEmpty()) continue;
+
+                $lastVerse = $currentVerses->last();
+                $currentVerses->pop();
+
+                // Extract text after \p marker
+                $paragraphText = trim(substr($line, 2)); // Remove \p from the beginning
+
+                if (!empty($paragraphText)) {
+                    // If there's text after \p, it's a continuation of the verse
+                    // Process references and formatting markers
+                    [$newReferences, $cleanParagraphText] = $this->processReferences($paragraphText);
+                    $cleanParagraphText = $this->removeFormattingMarkers($cleanParagraphText);
+
+                    // Merge references with existing ones
+                    $allReferences = $lastVerse->references->merge($newReferences);
+
+                    // Add paragraph text to verse (with newline before the text)
+                    $updatedText = $lastVerse->text . "\n" . $cleanParagraphText;
+                } else {
+                    // If \p is empty, it's just a paragraph break
+                    $allReferences = $lastVerse->references;
+                    $updatedText = $lastVerse->text . "\n";
                 }
+
+                $currentVerses->push(new VerseDTO(
+                    $lastVerse->number,
+                    $updatedText,
+                    $allReferences
+                ));
                 continue;
             }
 
