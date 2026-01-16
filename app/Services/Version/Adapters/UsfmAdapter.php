@@ -109,7 +109,9 @@ class UsfmAdapter implements VersionAdapterInterface
                 if (!empty($paragraphText)) {
                     // If there's text after \p, it's a continuation of the verse
                     // Process references and formatting markers
-                    [$newReferences, $cleanParagraphText] = $this->processReferences($paragraphText);
+                    // Start index after existing references to avoid duplicate slugs
+                    $startIndex = $lastVerse->references->count() + 1;
+                    [$newReferences, $cleanParagraphText] = $this->processReferences($paragraphText, $startIndex);
                     $cleanParagraphText = $this->removeFormattingMarkers($cleanParagraphText);
 
                     // Merge references with existing ones
@@ -177,10 +179,10 @@ class UsfmAdapter implements VersionAdapterInterface
      * Format: \f + \fr 1:1 \ft reference text \f*
      * Returns [references, cleanText]
      */
-    private function processReferences(string $text): array
+    private function processReferences(string $text, int $startIndex = 1): array
     {
         $references = new Collection();
-        $index = 1;
+        $index = $startIndex;
 
         // Pattern to match \f + \fr reference \ft text \f*
         // The pattern uses non-greedy matching to capture text until \f*
@@ -202,6 +204,10 @@ class UsfmAdapter implements VersionAdapterInterface
             if (empty($referenceText) || $referenceText === '') {
                 return ''; // Remove if no text
             }
+
+            // Remove USFM formatting markers from reference text
+            // This handles cases like \xt (cross-reference), \ft (additional footnote text), etc.
+            $referenceText = $this->removeFormattingMarkers($referenceText);
 
             $slug = (string) $index;
 
