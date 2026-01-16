@@ -63,6 +63,9 @@ class VersionValidator
                             throw new VersionImportException('empty_reference_text', "Reference with slug '{$reference->slug}' in verse {$verse->number} of chapter {$chapter->number} in book '{$book->name}' has empty text");
                         }
 
+                        // Validate that reference text contains only valid text (no markers or invalid characters)
+                        $this->validateReferenceTextContent($reference, $book->name, $chapter->number, $verse->number);
+
                         // Validate that reference slug exists in verse text
                         $slugPlaceholder = '{{' . $reference->slug . '}}';
                         if (strpos($verse->text, $slugPlaceholder) === false) {
@@ -107,6 +110,32 @@ class VersionValidator
             throw new VersionImportException(
                 'invalid_verse_text_content',
                 "Verse {$verse->number} in chapter {$chapterNumber} of book '{$bookName}' contains invalid characters or malformed placeholders"
+            );
+        }
+    }
+
+    /**
+     * Validate that reference text contains only valid text
+     * Text should not contain USFM markers or other invalid characters
+     */
+    private function validateReferenceTextContent(VerseReferenceDTO $reference, string $bookName, int $chapterNumber, int $verseNumber): void
+    {
+        $text = $reference->text;
+
+        // Check for USFM markers that should have been removed
+        if (preg_match('/\\\\[a-z]+\s*/i', $text)) {
+            throw new VersionImportException(
+                'invalid_reference_text_content',
+                "Reference with slug '{$reference->slug}' in verse {$verseNumber} of chapter {$chapterNumber} in book '{$bookName}' contains USFM markers that should have been removed"
+            );
+        }
+
+        // Check for malformed or invalid placeholders (curly braces that aren't valid placeholders)
+        // Reference text should not contain any curly braces as it's the replacement text
+        if (preg_match('/\{[^{]*\}|\}[^{]*\{|\{\{|\}\}/', $text)) {
+            throw new VersionImportException(
+                'invalid_reference_text_content',
+                "Reference with slug '{$reference->slug}' in verse {$verseNumber} of chapter {$chapterNumber} in book '{$bookName}' contains invalid characters or malformed placeholders"
             );
         }
     }

@@ -321,4 +321,70 @@ describe('VersionValidator', function () {
 
         expect(fn() => $this->validator->validate($dto))->not->toThrow(Exception::class);
     });
+
+    it('throws exception when reference text contains USFM markers', function () {
+        $references = collect([
+            new VerseReferenceDTO('1', 'Reference text with \f marker')
+        ]);
+
+        $books = collect([
+            new BookDTO(
+                'Genesis',
+                BookAbbreviationEnum::GEN,
+                collect([
+                    new ChapterDTO(1, collect([
+                        new VerseDTO(1, 'Verse text with {{1}}', $references)
+                    ]))
+                ])
+            )
+        ]);
+
+        $dto = new VersionDTO($books);
+
+        $this->validator->validate($dto);
+    })->throws(VersionImportException::class, 'contains USFM markers');
+
+    it('throws exception when reference text contains malformed placeholders', function () {
+        $references = collect([
+            new VerseReferenceDTO('1', 'Reference text with {invalid} placeholder')
+        ]);
+
+        $books = collect([
+            new BookDTO(
+                'Genesis',
+                BookAbbreviationEnum::GEN,
+                collect([
+                    new ChapterDTO(1, collect([
+                        new VerseDTO(1, 'Verse text with {{1}}', $references)
+                    ]))
+                ])
+            )
+        ]);
+
+        $dto = new VersionDTO($books);
+
+        $this->validator->validate($dto);
+    })->throws(VersionImportException::class, 'contains invalid characters or malformed placeholders');
+
+    it('validates reference text with only clean text', function () {
+        $references = collect([
+            new VerseReferenceDTO('1', 'Clean reference text without markers')
+        ]);
+
+        $books = collect([
+            new BookDTO(
+                'Genesis',
+                BookAbbreviationEnum::GEN,
+                collect([
+                    new ChapterDTO(1, collect([
+                        new VerseDTO(1, 'Verse text with {{1}}', $references)
+                    ]))
+                ])
+            )
+        ]);
+
+        $dto = new VersionDTO($books);
+
+        expect(fn() => $this->validator->validate($dto))->not->toThrow(Exception::class);
+    });
 });
