@@ -22,7 +22,7 @@ USFM;
             extension: 'usfm'
         );
 
-        $adapter = new UsfmAdapter();
+        $adapter = app(UsfmAdapter::class);
         $result = $adapter->adapt([$file]);
 
         expect($result)->toBeInstanceOf(VersionDTO::class)
@@ -47,7 +47,7 @@ USFM;
             extension: 'usfm'
         );
 
-        $adapter = new UsfmAdapter();
+        $adapter = app(UsfmAdapter::class);
         $result = $adapter->adapt([$file]);
 
         expect($result->books->first()->name)->toBe('Gênesis');
@@ -68,7 +68,7 @@ USFM;
             extension: 'usfm'
         );
 
-        $adapter = new UsfmAdapter();
+        $adapter = app(UsfmAdapter::class);
         $result = $adapter->adapt([$file]);
 
         expect($result->books->first()->chapters)->toHaveCount(2)
@@ -91,7 +91,7 @@ USFM;
             extension: 'usfm'
         );
 
-        $adapter = new UsfmAdapter();
+        $adapter = app(UsfmAdapter::class);
         $result = $adapter->adapt([$file]);
 
         $verses = $result->books->first()->chapters->first()->verses;
@@ -116,7 +116,7 @@ USFM;
             extension: 'usfm'
         );
 
-        $adapter = new UsfmAdapter();
+        $adapter = app(UsfmAdapter::class);
         $result = $adapter->adapt([$file]);
 
         $verse = $result->books->first()->chapters->first()->verses->first();
@@ -140,7 +140,7 @@ USFM;
             extension: 'usfm'
         );
 
-        $adapter = new UsfmAdapter();
+        $adapter = app(UsfmAdapter::class);
         $result = $adapter->adapt([$file]);
 
         $verse = $result->books->first()->chapters->first()->verses->first();
@@ -167,7 +167,7 @@ USFM;
             extension: 'usfm'
         );
 
-        $adapter = new UsfmAdapter();
+        $adapter = app(UsfmAdapter::class);
         $result = $adapter->adapt([$file]);
 
         $verses = $result->books->first()->chapters->first()->verses;
@@ -184,7 +184,7 @@ USFM;
             extension: 'json'
         );
 
-        $adapter = new UsfmAdapter();
+        $adapter = app(UsfmAdapter::class);
 
         expect(fn() => $adapter->adapt([$file]))
             ->toThrow(VersionImportException::class, 'File must have .usfm extension');
@@ -197,7 +197,7 @@ USFM;
             extension: 'usfm'
         );
 
-        $adapter = new UsfmAdapter();
+        $adapter = app(UsfmAdapter::class);
 
         expect(fn() => $adapter->adapt([$file]))
             ->toThrow(VersionImportException::class, "File name 'invalid.usfm' does not match any book abbreviation");
@@ -215,7 +215,7 @@ USFM;
             extension: 'usfm'
         );
 
-        $adapter = new UsfmAdapter();
+        $adapter = app(UsfmAdapter::class);
 
         expect(fn() => $adapter->adapt([$file]))
             ->toThrow(VersionImportException::class, 'Book name (\\h marker) not found in USFM file');
@@ -234,7 +234,7 @@ USFM;
             extension: 'usfm'
         );
 
-        $adapter = new UsfmAdapter();
+        $adapter = app(UsfmAdapter::class);
         $result = $adapter->adapt([$file1, $file2]);
 
         expect($result->books)->toHaveCount(2)
@@ -255,7 +255,7 @@ USFM;
             extension: 'usfm'
         );
 
-        $adapter = new UsfmAdapter();
+        $adapter = app(UsfmAdapter::class);
         $result = $adapter->adapt([$file]);
 
         $verse = $result->books->first()->chapters->first()->verses->first();
@@ -279,7 +279,7 @@ USFM;
             extension: 'usfm'
         );
 
-        $adapter = new UsfmAdapter();
+        $adapter = app(UsfmAdapter::class);
         $result = $adapter->adapt([$file]);
 
         expect($result->books->first()->abbreviation)->toBe(BookAbbreviationEnum::MAT);
@@ -298,7 +298,7 @@ USFM;
             extension: 'usfm'
         );
 
-        $adapter = new UsfmAdapter();
+        $adapter = app(UsfmAdapter::class);
         $result = $adapter->adapt([$file]);
 
         $verse = $result->books->first()->chapters->first()->verses->first();
@@ -322,7 +322,7 @@ USFM;
             extension: 'usfm'
         );
 
-        $adapter = new UsfmAdapter();
+        $adapter = app(UsfmAdapter::class);
         $result = $adapter->adapt([$file]);
 
         $verse = $result->books->first()->chapters->first()->verses->first();
