@@ -75,6 +75,9 @@ class UsfmMarkerCleaner
      */
     private function logUnmappedMarker(string $marker, string $book, int $lineNumber): void
     {
+        // Skip logging if marker is in the ignored list
+        if (in_array($marker, UsfmMarkers::LOG_IGNORED_MARKERS, true)) return;
+
         Log::warning('Unmapped USFM marker detected', [
             'marker' => $marker,
             'book' => $book,

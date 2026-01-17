@@ -39,6 +39,11 @@ class UsfmMarkers
     ];
 
     /**
+     * Markers to ignore when logging unmapped markers
+     */
+    public const LOG_IGNORED_MARKERS = ['id', 'ide', 'toc1', 'toc2', 'toc3', 'mt1'];
+
+    /**
      * Get all known markers (paragraph, formatting, and note markers)
      */
     public static function getAllKnownMarkers(): array
