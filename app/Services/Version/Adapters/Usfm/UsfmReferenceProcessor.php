@@ -50,6 +50,8 @@ class UsfmReferenceProcessor
 
     /**
      * Process note markers (footnotes or cross-references)
+     * 
+     * @param Collection<int, VerseReferenceDTO> $references
      */
     private function processNoteMarkers(
         string $text,
@@ -75,6 +77,8 @@ class UsfmReferenceProcessor
 
     /**
      * Process inline quotation references: \rq TEXT \rq*
+     * 
+     * @param Collection<int, VerseReferenceDTO> $references
      */
     private function processInlineQuotationReferences(
         string $text,
@@ -142,6 +146,8 @@ class UsfmReferenceProcessor
 
     /**
      * Create reference DTO and return slug placeholder
+     * 
+     * @param Collection<int, VerseReferenceDTO> $references
      */
     private function createReferenceAndGetSlug(Collection $references, int $index, string $referenceText): string
     {

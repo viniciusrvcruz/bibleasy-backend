@@ -3,6 +3,7 @@
 namespace App\Services\Version\Adapters;
 
 use App\Enums\BookAbbreviationEnum;
+use App\Services\Version\DTOs\FileDTO;
 use App\Services\Version\DTOs\VersionDTO;
 use App\Services\Version\Interfaces\VersionAdapterInterface;
 use App\Services\Version\Adapters\Usfm\UsfmBookParser;
@@ -18,6 +19,9 @@ class UsfmAdapter implements VersionAdapterInterface
         private readonly UsfmBookParser $bookParser
     ) {}
 
+    /**
+     * @param array<int, FileDTO> $files
+     */
     public function adapt(array $files): VersionDTO
     {
         $books = collect($files)->map(function ($file) {
@@ -34,7 +38,7 @@ class UsfmAdapter implements VersionAdapterInterface
     /**
      * Validate file extension and name
      */
-    private function validateFile($file): void
+    private function validateFile(FileDTO $file): void
     {
         if (strtolower($file->extension) !== 'usfm') {
             throw new VersionImportException(

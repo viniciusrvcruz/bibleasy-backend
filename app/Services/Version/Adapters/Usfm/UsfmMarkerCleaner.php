@@ -33,8 +33,9 @@ class UsfmMarkerCleaner
 
         // Remove any remaining character markers that follow the pattern \marker or \marker*
         // This catches any markers we might have missed (generic pattern)
-        $text = preg_replace('/\\\\[a-z]+\*/', '', $text); // Remove closing markers
-        $text = preg_replace('/\\\\[a-z]+(?:\|[^\\\\]*)?(?:\s+|$)/', '', $text); // Remove opening markers with optional attributes
+        // Also handles markers that start with + (e.g., \+add, \+add*)
+        $text = preg_replace('/\\\\\+?[a-z]+\*/', '', $text); // Remove closing markers (including \+marker*)
+        $text = preg_replace('/\\\\\+?[a-z]+(?:\|[^\\\\]*)?(?:\s+|$)/', '', $text); // Remove opening markers with optional attributes (including \+marker)
 
         // Clean up extra spaces that might have been left
         $text = preg_replace('/\s+/', ' ', $text);
@@ -50,10 +51,11 @@ class UsfmMarkerCleaner
         $knownMarkers = UsfmMarkers::getAllKnownMarkers();
 
         // Pattern to match all markers: \marker, \marker*, \marker|attr, \marker|attr*
-        // Matches: \ followed by letters/numbers, optional |attributes, optional *
+        // Also matches markers with + prefix: \+marker, \+marker*
+        // Matches: \ followed by optional +, then letters/numbers, optional |attributes, optional *
         // This captures both opening and closing markers
-        // Group 1: marker name, Group 2: optional attributes, Group 3: optional *
-        preg_match_all('/\\\\([a-z]+(?:\d+)?)(?:\|([^\\\\\s*]+))?(\*)?/i', $text, $matches, PREG_SET_ORDER);
+        // Group 1: marker name (without +), Group 2: optional attributes, Group 3: optional *
+        preg_match_all('/\\\\\+?([a-z]+(?:\d+)?)(?:\|([^\\\\\s*]+))?(\*)?/i', $text, $matches, PREG_SET_ORDER);
 
         if (empty($matches)) return;
 

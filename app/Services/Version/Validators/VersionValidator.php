@@ -95,23 +95,8 @@ class VersionValidator
             $textWithoutPlaceholders = str_replace('{{' . $slug . '}}', '', $textWithoutPlaceholders);
         }
 
-        // Check for USFM markers that should have been removed
-        if (preg_match('/\\\\[a-z]+\s*/i', $textWithoutPlaceholders)) {
-            throw new VersionImportException(
-                'invalid_verse_text_content',
-                "Verse {$verse->number} in chapter {$chapterNumber} of book '{$bookName}' contains USFM markers that should have been removed"
-            );
-        }
-
-        // Check for malformed or invalid placeholders (curly braces that aren't valid placeholders)
-        // This checks for any remaining {{ or }} that aren't part of valid placeholders
-        $remainingText = $textWithoutPlaceholders;
-        if (preg_match('/\{[^{]*\}|\}[^{]*\{|\{\{|\}\}/', $remainingText)) {
-            throw new VersionImportException(
-                'invalid_verse_text_content',
-                "Verse {$verse->number} in chapter {$chapterNumber} of book '{$bookName}' contains invalid characters or malformed placeholders"
-            );
-        }
+        $errorMessage = "Verse {$verse->number} in chapter {$chapterNumber} of book '{$bookName}'";
+        $this->validateTextContent($textWithoutPlaceholders, 'invalid_verse_text_content', $errorMessage);
     }
 
     /**
@@ -121,21 +106,30 @@ class VersionValidator
     private function validateReferenceTextContent(VerseReferenceDTO $reference, string $bookName, int $chapterNumber, int $verseNumber): void
     {
         $text = $reference->text;
+        $errorMessage = "Reference with slug '{$reference->slug}' in verse {$verseNumber} of chapter {$chapterNumber} in book '{$bookName}'";
+        $this->validateTextContent($text, 'invalid_reference_text_content', $errorMessage);
+    }
 
+    /**
+     * Validate that text contains only valid content
+     * Checks for USFM markers and malformed placeholders
+     */
+    private function validateTextContent(string $text, string $errorCode, string $errorContext): void
+    {
         // Check for USFM markers that should have been removed
-        if (preg_match('/\\\\[a-z]+\s*/i', $text)) {
+        // Also checks for markers with + prefix (e.g., \+add, \+add*)
+        if (preg_match('/\\\\\+?[a-z]+(?:\*)?\s*/i', $text)) {
             throw new VersionImportException(
-                'invalid_reference_text_content',
-                "Reference with slug '{$reference->slug}' in verse {$verseNumber} of chapter {$chapterNumber} in book '{$bookName}' contains USFM markers that should have been removed"
+                $errorCode,
+                "{$errorContext} contains USFM markers that should have been removed"
             );
         }
 
         // Check for malformed or invalid placeholders (curly braces that aren't valid placeholders)
-        // Reference text should not contain any curly braces as it's the replacement text
         if (preg_match('/\{[^{]*\}|\}[^{]*\{|\{\{|\}\}/', $text)) {
             throw new VersionImportException(
-                'invalid_reference_text_content',
-                "Reference with slug '{$reference->slug}' in verse {$verseNumber} of chapter {$chapterNumber} in book '{$bookName}' contains invalid characters or malformed placeholders"
+                $errorCode,
+                "{$errorContext} contains invalid characters or malformed placeholders"
             );
         }
     }
