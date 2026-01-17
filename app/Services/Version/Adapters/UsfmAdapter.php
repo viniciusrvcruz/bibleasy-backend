@@ -11,6 +11,7 @@ use App\Services\Version\DTOs\VerseReferenceDTO;
 use App\Services\Version\Interfaces\VersionAdapterInterface;
 use App\Exceptions\Version\VersionImportException;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Log;
 
 /**
  * Adapter for USFM (Unified Standard Format Markers) format
@@ -102,7 +103,7 @@ class UsfmAdapter implements VersionAdapterInterface
         $currentVerses = new Collection();
         $currentChapterNumber = null;
 
-        foreach ($lines as $line) {
+        foreach ($lines as $lineNumber => $line) {
             $line = rtrim($line);
 
             // Skip empty lines
@@ -146,8 +147,17 @@ class UsfmAdapter implements VersionAdapterInterface
                     // Process references and formatting markers
                     // Start index after existing references to avoid duplicate slugs
                     $startIndex = $lastVerse->references->count() + 1;
-                    [$newReferences, $cleanParagraphText] = $this->processReferences($paragraphText, $startIndex);
-                    $cleanParagraphText = $this->removeFormattingMarkers($cleanParagraphText);
+                    [$newReferences, $cleanParagraphText] = $this->processReferences(
+                        $paragraphText,
+                        $startIndex,
+                        $abbreviation->value,
+                        $lineNumber + 1
+                    );
+                    $cleanParagraphText = $this->removeFormattingMarkers(
+                        $cleanParagraphText,
+                        $abbreviation->value,
+                        $lineNumber + 1
+                    );
 
                     // Merge references with existing ones
                     $allReferences = $lastVerse->references->merge($newReferences);
@@ -180,10 +190,19 @@ class UsfmAdapter implements VersionAdapterInterface
                 $verseContent = $matches[2] ?? '';
 
                 // Extract references and clean verse text, replacing references with {{slug}}
-                [$references, $cleanText] = $this->processReferences($verseContent);
+                [$references, $cleanText] = $this->processReferences(
+                    $verseContent,
+                    1,
+                    $abbreviation->value,
+                    $lineNumber + 1
+                );
 
                 // Remove USFM formatting markers
-                $cleanText = $this->removeFormattingMarkers($cleanText);
+                $cleanText = $this->removeFormattingMarkers(
+                    $cleanText,
+                    $abbreviation->value,
+                    $lineNumber + 1
+                );
 
                 $currentVerses->push(new VerseDTO(
                     $verseNumber,
@@ -191,6 +210,19 @@ class UsfmAdapter implements VersionAdapterInterface
                     $references
                 ));
                 continue;
+            }
+
+            // Check if line starts with a marker but wasn't processed
+            if (str_starts_with($line, '\\')) {
+                // Extract marker name from line start
+                preg_match('/^\\\\([a-z]+(?:\d+)?)/i', $line, $markerMatches);
+                $marker = $markerMatches[1] ?? 'unknown';
+                
+                // Check if it's a known marker that we handle
+                $knownMarkers = $this->getAllKnownMarkers();
+                if (!in_array($marker, $knownMarkers, true) && $marker !== 'ch') {
+                    $this->logUnmappedMarker($marker, $abbreviation->value, $lineNumber + 1);
+                }
             }
         }
 
@@ -215,7 +247,7 @@ class UsfmAdapter implements VersionAdapterInterface
      * extended footnotes (\ef), and extended cross-references (\ex)
      * Returns [references, cleanText]
      */
-    private function processReferences(string $text, int $startIndex = 1): array
+    private function processReferences(string $text, int $startIndex = 1, ?string $book = null, ?int $lineNumber = null): array
     {
         $references = new Collection();
         $index = $startIndex;
@@ -241,6 +273,11 @@ class UsfmAdapter implements VersionAdapterInterface
             $text = preg_replace('/\\\\' . $escapedNoteType . '[^\s]*/', '', $text);
         }
 
+        // Detect unmapped markers in the text
+        if ($book !== null && $lineNumber !== null) {
+            $this->detectUnmappedMarkersInText($text, $book, $lineNumber);
+        }
+
         // Clean up extra spaces
         $text = preg_replace('/\s+/', ' ', $text);
 
@@ -264,8 +301,8 @@ class UsfmAdapter implements VersionAdapterInterface
         // For cross-references, there may be multiple \xt markers, so we capture all content
         // Supports optional whitespace and captures text reliably
         $pattern = '/\\\\' . preg_quote($noteType, '/') . '\s*\+\s*\\\\' . preg_quote($refMarker, '/') . 
-                   '\s+([^\s\\\\]+)\s+\\\\' . preg_quote($textMarker, '/') . '\s*(.*?)\\\\' . 
-                   preg_quote($noteType, '/') . '\*/s';
+            '\s+([^\s\\\\]+)\s+\\\\' . preg_quote($textMarker, '/') . '\s*(.*?)\\\\' . 
+            preg_quote($noteType, '/') . '\*/s';
 
         return preg_replace_callback($pattern, function ($match) use (&$references, &$index) {
             // Ensure match[2] exists and is not null
@@ -350,9 +387,7 @@ class UsfmAdapter implements VersionAdapterInterface
      */
     private function getParagraphMarker(string $line): ?string
     {
-        if (!str_starts_with($line, '\\')) {
-            return null;
-        }
+        if (!str_starts_with($line, '\\')) return null;
 
         // Check each paragraph marker (sorted by length descending to match longer markers first)
         $sortedMarkers = self::PARAGRAPH_BREAK_MARKERS;
@@ -361,13 +396,12 @@ class UsfmAdapter implements VersionAdapterInterface
         foreach ($sortedMarkers as $marker) {
             $markerPattern = '\\' . $marker;
             // Check if line starts with marker
-            if (str_starts_with($line, $markerPattern)) {
-                $afterMarker = substr($line, strlen($markerPattern));
-                // Marker should be followed by space, tab, newline, or end of line
-                if (empty($afterMarker) || in_array($afterMarker[0], [' ', "\t", "\n", "\r"], true)) {
-                    return $markerPattern;
-                }
-            }
+            if (!str_starts_with($line, $markerPattern)) continue;
+
+            $afterMarker = substr($line, strlen($markerPattern));
+
+            // Marker should be followed by space, tab, newline, or end of line
+            if (empty($afterMarker) || in_array($afterMarker[0], [' ', "\t", "\n", "\r"], true)) return $markerPattern;
         }
 
         return null;
@@ -378,7 +412,7 @@ class UsfmAdapter implements VersionAdapterInterface
      * Removes character formatting markers (it, bd, em, etc.) and other character markers
      * Keeps the text content but removes the markup
      */
-    private function removeFormattingMarkers(string $text): string
+    private function removeFormattingMarkers(string $text, ?string $book = null, ?int $lineNumber = null): string
     {
         // Build pattern for all formatting markers
         $markersPattern = implode('|', array_map('preg_quote', self::FORMATTING_MARKERS));
@@ -390,6 +424,11 @@ class UsfmAdapter implements VersionAdapterInterface
         // Pattern matches: \marker, \marker|attributes, \marker followed by space or end
         $text = preg_replace('/\\\\(' . $markersPattern . ')(?:\|[^\\\\]*)?(?:\s+|$)/', '', $text);
         
+        // Detect unmapped markers before removing them generically
+        if ($book !== null && $lineNumber !== null) {
+            $this->detectUnmappedMarkersInText($text, $book, $lineNumber);
+        }
+        
         // Remove any remaining character markers that follow the pattern \marker or \marker*
         // This catches any markers we might have missed (generic pattern)
         $text = preg_replace('/\\\\[a-z]+\*/', '', $text); // Remove closing markers
@@ -399,5 +438,65 @@ class UsfmAdapter implements VersionAdapterInterface
         $text = preg_replace('/\s+/', ' ', $text);
 
         return trim($text);
+    }
+
+    /**
+     * Get all known markers (paragraph, formatting, and note markers)
+     */
+    private function getAllKnownMarkers(): array
+    {
+        $knownMarkers = array_merge(
+            self::PARAGRAPH_BREAK_MARKERS,
+            self::FORMATTING_MARKERS,
+            array_keys(self::NOTE_MARKERS),
+            ['h', 'c', 'v', 'rq'] // Additional known markers
+        );
+
+        // Add note content markers (fr, ft, xo, xt)
+        $noteContentMarkers = [];
+        foreach (self::NOTE_MARKERS as $contentMarkers) {
+            $noteContentMarkers = array_merge($noteContentMarkers, $contentMarkers);
+        }
+        $knownMarkers = array_merge($knownMarkers, $noteContentMarkers);
+
+        return array_unique($knownMarkers);
+    }
+
+    /**
+     * Detect and log unmapped markers in text
+     */
+    private function detectUnmappedMarkersInText(string $text, string $book, int $lineNumber): void
+    {
+        $knownMarkers = $this->getAllKnownMarkers();
+        
+        // Pattern to match all markers: \marker, \marker*, \marker|attr, \marker|attr*
+        // Matches: \ followed by letters/numbers, optional |attributes, optional *
+        // This captures both opening and closing markers
+        // Group 1: marker name, Group 2: optional attributes, Group 3: optional *
+        preg_match_all('/\\\\([a-z]+(?:\d+)?)(?:\|([^\\\\\s*]+))?(\*)?/i', $text, $matches, PREG_SET_ORDER);
+        
+        if (!empty($matches)) {
+            foreach ($matches as $match) {
+                // Extract marker name (group 1)
+                $markerName = strtolower($match[1]);
+                
+                // Check if marker is known
+                if (!in_array($markerName, $knownMarkers, true)) {
+                    $this->logUnmappedMarker($markerName, $book, $lineNumber);
+                }
+            }
+        }
+    }
+
+    /**
+     * Log unmapped marker
+     */
+    private function logUnmappedMarker(string $marker, string $book, int $lineNumber): void
+    {
+        Log::warning('Unmapped USFM marker detected', [
+            'marker' => $marker,
+            'book' => $book,
+            'line' => $lineNumber,
+        ]);
     }
 }
