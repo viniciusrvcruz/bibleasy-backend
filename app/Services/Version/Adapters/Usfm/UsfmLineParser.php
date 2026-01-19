@@ -2,6 +2,8 @@
 
 namespace App\Services\Version\Adapters\Usfm;
 
+use Illuminate\Support\Facades\Log;
+
 /**
  * Parses individual USFM lines to extract structured information
  */
@@ -33,13 +35,20 @@ class UsfmLineParser
      * Extract verse number and content from \v marker
      * Returns ['number' => int, 'content' => string] or null
      */
-    public function parseVerse(string $line): ?array
+    public function parseVerse(string $line, string $book): ?array
     {
         if (!str_starts_with($line, '\\v ')) return null;
 
         preg_match('/^\\\v\s+(\d+)\s+(.+)$/', $line, $matches);
 
-        if (!isset($matches[1]) || !isset($matches[2])) return null;
+        if (!isset($matches[1]) || !isset($matches[2])) {
+            Log::warning('Verse not parsed', [
+                'book' => $book,
+                'line' => $line,
+            ]);
+
+            return null;
+        };
 
         return [
             'number' => (int) $matches[1],

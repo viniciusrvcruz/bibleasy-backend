@@ -109,7 +109,7 @@ class UsfmBookParser
             }
 
             // Process verse
-            $parsedVerse = $this->lineParser->parseVerse($line);
+            $parsedVerse = $this->lineParser->parseVerse($line, $abbreviation->value);
             if ($parsedVerse !== null) {
                 $verseNumber = $parsedVerse['number'];
                 $verseContent = $parsedVerse['content'];
