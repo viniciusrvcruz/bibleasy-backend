@@ -26,6 +26,9 @@ class UsfmAdapter implements VersionAdapterInterface
      */
     public function adapt(array $files): VersionDTO
     {
+        if (empty($files))
+            throw new VersionImportException('no_files', 'No files provided');
+
         $books = collect($files)->map(function ($file) {
             $this->validateFile($file);
 
