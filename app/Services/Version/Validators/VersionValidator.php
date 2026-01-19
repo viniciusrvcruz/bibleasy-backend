@@ -6,6 +6,7 @@ use App\Services\Version\DTOs\VersionDTO;
 use App\Services\Version\DTOs\BookDTO;
 use App\Services\Version\DTOs\ChapterDTO;
 use App\Services\Version\DTOs\VerseDTO;
+use App\Services\Version\DTOs\VerseReferenceDTO;
 use App\Exceptions\Version\VersionImportException;
 
 class VersionValidator
@@ -41,8 +42,95 @@ class VersionValidator
                     if (empty(trim($verse->text))) {
                         throw new VersionImportException('empty_verse', "Verse {$verse->number} in chapter {$chapter->number} of book '{$book->name}' has empty text");
                     }
+
+                    // Validate that verse text contains only text and slug placeholders
+                    $this->validateVerseTextContent($verse, $book->name, $chapter->number);
+
+                    // Validate references
+                    foreach ($verse->references as $reference) {
+                        // Validate that each reference is an instance of VerseReferenceDTO
+                        if (!$reference instanceof VerseReferenceDTO) {
+                            throw new VersionImportException('invalid_reference_type', "Reference in verse {$verse->number} of chapter {$chapter->number} in book '{$book->name}' is not an instance of VerseReferenceDTO");
+                        }
+
+                        // Validate that reference slug is not empty
+                        if (empty($reference->slug)) {
+                            throw new VersionImportException('empty_reference_slug', "Reference in verse {$verse->number} of chapter {$chapter->number} in book '{$book->name}' has empty slug");
+                        }
+
+                        // Validate that reference text is not empty
+                        if (empty($reference->text)) {
+                            throw new VersionImportException('empty_reference_text', "Reference with slug '{$reference->slug}' in verse {$verse->number} of chapter {$chapter->number} in book '{$book->name}' has empty text");
+                        }
+
+                        // Validate that reference text contains only valid text (no markers or invalid characters)
+                        $this->validateReferenceTextContent($reference, $book->name, $chapter->number, $verse->number);
+
+                        // Validate that reference slug exists in verse text
+                        $slugPlaceholder = '{{' . $reference->slug . '}}';
+                        if (strpos($verse->text, $slugPlaceholder) === false) {
+                            throw new VersionImportException('missing_slug_in_verse_text', "Reference with slug '{$reference->slug}' in verse {$verse->number} of chapter {$chapter->number} in book '{$book->name}' is missing its placeholder '{$slugPlaceholder}' in the verse text");
+                        }
+                    }
                 }
             }
+        }
+    }
+
+    /**
+     * Validate that verse text contains only valid text and slug placeholders
+     * Text should not contain USFM markers or other invalid characters
+     */
+    private function validateVerseTextContent(VerseDTO $verse, string $bookName, int $chapterNumber): void
+    {
+        $text = $verse->text;
+
+        // Remove all valid slug placeholders ({{slug}}) from the text
+        // First, collect all valid slugs from references
+        $validSlugs = $verse->references->map(fn($ref) => $ref->slug)->toArray();
+        
+        // Remove all valid placeholders
+        $textWithoutPlaceholders = $text;
+        foreach ($validSlugs as $slug) {
+            $textWithoutPlaceholders = str_replace('{{' . $slug . '}}', '', $textWithoutPlaceholders);
+        }
+
+        $errorMessage = "Verse {$verse->number} in chapter {$chapterNumber} of book '{$bookName}'";
+        $this->validateTextContent($textWithoutPlaceholders, 'invalid_verse_text_content', $errorMessage);
+    }
+
+    /**
+     * Validate that reference text contains only valid text
+     * Text should not contain USFM markers or other invalid characters
+     */
+    private function validateReferenceTextContent(VerseReferenceDTO $reference, string $bookName, int $chapterNumber, int $verseNumber): void
+    {
+        $text = $reference->text;
+        $errorMessage = "Reference with slug '{$reference->slug}' in verse {$verseNumber} of chapter {$chapterNumber} in book '{$bookName}'";
+        $this->validateTextContent($text, 'invalid_reference_text_content', $errorMessage);
+    }
+
+    /**
+     * Validate that text contains only valid content
+     * Checks for USFM markers and malformed placeholders
+     */
+    private function validateTextContent(string $text, string $errorCode, string $errorContext): void
+    {
+        // Check for USFM markers that should have been removed
+        // Also checks for markers with + prefix (e.g., \+add, \+add*)
+        if (preg_match('/\\\\\+?[a-z]+(?:\*)?\s*/i', $text)) {
+            throw new VersionImportException(
+                $errorCode,
+                "{$errorContext} contains USFM markers that should have been removed"
+            );
+        }
+
+        // Check for malformed or invalid placeholders (curly braces that aren't valid placeholders)
+        if (preg_match('/\{[^{]*\}|\}[^{]*\{|\{\{|\}\}/', $text)) {
+            throw new VersionImportException(
+                $errorCode,
+                "{$errorContext} contains invalid characters or malformed placeholders"
+            );
         }
     }
 }

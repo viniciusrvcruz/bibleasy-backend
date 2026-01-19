@@ -6,6 +6,7 @@ use App\Enums\BookAbbreviationEnum;
 use App\Models\Book;
 use App\Models\Chapter;
 use App\Models\Verse;
+use App\Models\VerseReference;
 use App\Services\Version\DTOs\BookDTO;
 use App\Services\Version\DTOs\VersionDTO;
 use Illuminate\Support\Collection;
@@ -39,8 +40,50 @@ class VersionImporter
                 ])->toArray();
 
                 Verse::insert($verses);
+
+                // Import references for each verse
+                $this->importReferences($chapterDTO, $chapter->id);
             }
         }
+    }
+
+    /**
+     * Import references for verses in a chapter
+     */
+    private function importReferences($chapterDTO, int $chapterId): void
+    {
+        // Get all verses for this chapter ordered by number
+        $verses = Verse::where('chapter_id', $chapterId)
+            ->orderBy('number')
+            ->get()
+            ->keyBy('number');
+
+        // Filter verses that have references
+        $versesWithReferences = $chapterDTO->verses->filter(fn($verseDTO) => 
+            $verses->has($verseDTO->number) && $verseDTO->references->isNotEmpty()
+        );
+
+        if ($versesWithReferences->isEmpty()) return;
+
+        $referencesToInsert = [];
+
+        foreach ($versesWithReferences as $verseDTO) {
+            $verse = $verses->get($verseDTO->number);
+
+            foreach ($verseDTO->references as $referenceDTO) {
+                $referencesToInsert[] = [
+                    'verse_id' => $verse->id,
+                    'slug' => $referenceDTO->slug,
+                    'text' => $referenceDTO->text,
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ];
+            }
+        }
+
+        if(empty($referencesToInsert)) return;
+
+        VerseReference::insert($referencesToInsert);
     }
 
     /**

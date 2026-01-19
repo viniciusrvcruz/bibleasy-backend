@@ -1,14 +1,9 @@
 <?php
 
 use App\Enums\VersionLanguageEnum;
-use App\Models\Chapter;
-use App\Models\Version;
-use Database\Seeders\BookSeeder;
 use Illuminate\Http\UploadedFile;
 
 beforeEach(function () {
-    $this->seed(BookSeeder::class);
-
     $this->allBookNames = [
         'Gênesis', 'Êxodo', 'Levítico', 'Números', 'Deuteronômio', 'Josué', 'Juízes', 'Rute',
         '1 Samuel', '2 Samuel', '1 Reis', '2 Reis', '1 Crônicas', '2 Crônicas', 'Esdras', 'Neemias',

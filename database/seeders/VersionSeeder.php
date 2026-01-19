@@ -8,6 +8,7 @@ use App\Models\Book;
 use App\Models\Chapter;
 use App\Models\Version;
 use App\Models\Verse;
+use App\Models\VerseReference;
 use Illuminate\Database\Seeder;
 
 class VersionSeeder extends Seeder
@@ -17,6 +18,8 @@ class VersionSeeder extends Seeder
      */
     public function run(): void
     {
+        if(app()->isProduction()) return;
+
         // Create a version for development
         $version = Version::create([
             'abbreviation' => 'DEV',
@@ -145,14 +148,44 @@ class VersionSeeder extends Seeder
                 $versesCount = rand(5, 10);
 
                 for ($verseNum = 1; $verseNum <= $versesCount; $verseNum++) {
-                    Verse::create([
+                    $verse = Verse::create([
                         'chapter_id' => $chapter->id,
                         'number' => $verseNum,
                         'text' => $mockTexts[array_rand($mockTexts)],
                     ]);
+
+                    // Randomly add references to ~30% of verses
+                    if (rand(1, 100) <= 30) {
+                        $this->addRandomReferences($verse);
+                    }
                 }
             }
         }
+    }
+
+    /**
+     * Add random references to a verse
+     */
+    private function addRandomReferences(Verse $verse): void
+    {
+        $referenceTexts = [
+            'Nota explicativa sobre o significado original.',
+            'Referência histórica ao contexto da época.',
+            'Comentário sobre a tradução e interpretação.',
+        ];
+
+        $text = $verse->text;
+        $slug = '1';
+
+        $text .= '{{' . $slug . '}}';
+
+        VerseReference::create([
+            'verse_id' => $verse->id,
+            'slug' => $slug,
+            'text' => $referenceTexts[array_rand($referenceTexts)],
+        ]);
+
+        $verse->update(['text' => $text]);
     }
 
     /**
