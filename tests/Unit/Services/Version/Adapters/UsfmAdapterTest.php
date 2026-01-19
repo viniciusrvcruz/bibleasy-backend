@@ -9,6 +9,7 @@ use App\Exceptions\Version\VersionImportException;
 describe('UsfmAdapter', function () {
     it('adapts valid USFM file successfully', function () {
         $usfmContent = <<<'USFM'
+\id MAT - Bíblia Livre Para Todos
 \h Mateus
 \c 1
 \p
@@ -36,6 +37,7 @@ USFM;
 
     it('extracts book name from \h marker', function () {
         $usfmContent = <<<'USFM'
+\id GEN - Biblica® Open Nova Bíblia Viva 2007
 \h Gênesis
 \c 1
 \v 1 No princípio criou Deus os céus e a terra.
@@ -55,6 +57,7 @@ USFM;
 
     it('extracts chapters from \c marker', function () {
         $usfmContent = <<<'USFM'
+\id MAT - Bíblia Livre Para Todos
 \h Mateus
 \c 1
 \v 1 Versículo do capítulo 1
@@ -78,6 +81,7 @@ USFM;
 
     it('extracts verses from \v marker', function () {
         $usfmContent = <<<'USFM'
+\id MAT - Bíblia Livre Para Todos
 \h Mateus
 \c 1
 \v 1 Primeiro versículo
@@ -105,6 +109,7 @@ USFM;
 
     it('extracts and processes references', function () {
         $usfmContent = <<<'USFM'
+\id MAT - Bíblia Livre Para Todos
 \h Mateus
 \c 1
 \v 1 Este livro é o registro\f + \fr 1:1 \ft Ou "Cristo." Messias é a palavra em hebraico para Cristo em grego.\f* da genealogia
@@ -129,6 +134,7 @@ USFM;
 
     it('replaces multiple references with slugs in text', function () {
         $usfmContent = <<<'USFM'
+\id MAT - Bíblia Livre Para Todos
 \h Mateus
 \c 1
 \v 1 Primeira referência\f + \fr 1:1 \ft Texto da primeira referência\f* e segunda referência\f + \fr 1:2 \ft Texto da segunda referência\f* no mesmo versículo
@@ -154,6 +160,7 @@ USFM;
 
     it('adds newline to last verse when \p marker is found', function () {
         $usfmContent = <<<'USFM'
+\id MAT - Bíblia Livre Para Todos
 \h Mateus
 \c 1
 \v 1 Primeiro versículo do parágrafo
@@ -190,21 +197,41 @@ USFM;
             ->toThrow(VersionImportException::class, 'File must have .usfm extension');
     });
 
-    it('validates file name matches book abbreviation', function () {
+    it('validates book abbreviation from \id marker', function () {
         $file = new FileDTO(
-            content: '\h Mateus\n\c 1\n\v 1 Texto',
-            fileName: 'invalid.usfm',
+            content: "\id INVALID - Bíblia Teste\n\h Mateus\n\c 1\n\v 1 Texto",
+            fileName: 'mat.usfm',
             extension: 'usfm'
         );
 
         $adapter = app(UsfmAdapter::class);
 
         expect(fn() => $adapter->adapt([$file]))
-            ->toThrow(VersionImportException::class, "File name 'invalid.usfm' does not match any book abbreviation");
+            ->toThrow(VersionImportException::class, "Book abbreviation 'INV' from \\id marker does not match any book abbreviation from BookAbbreviationEnum in file mat.usfm");
+    });
+
+    it('throws exception when \id marker is missing', function () {
+        $usfmContent = <<<'USFM'
+\h Mateus
+\c 1
+\v 1 Versículo sem marcador \id
+USFM;
+
+        $file = new FileDTO(
+            content: $usfmContent,
+            fileName: 'mat.usfm',
+            extension: 'usfm'
+        );
+
+        $adapter = app(UsfmAdapter::class);
+
+        expect(fn() => $adapter->adapt([$file]))
+            ->toThrow(VersionImportException::class, '\\id marker not found in USFM file mat.usfm');
     });
 
     it('throws exception when book name is missing', function () {
         $usfmContent = <<<'USFM'
+\id MAT - Bíblia Livre Para Todos
 \c 1
 \v 1 Versículo sem nome do livro
 USFM;
@@ -223,13 +250,13 @@ USFM;
 
     it('processes multiple files', function () {
         $file1 = new FileDTO(
-            content: "\h Mateus\n\c 1\n\v 1 Versículo de Mateus",
+            content: "\id MAT - Bíblia Livre Para Todos\n\h Mateus\n\c 1\n\v 1 Versículo de Mateus",
             fileName: 'mat.usfm',
             extension: 'usfm'
         );
 
         $file2 = new FileDTO(
-            content: "\h Marcos\n\c 1\n\v 1 Versículo de Marcos",
+            content: "\id MRK - Bíblia Livre Para Todos\n\h Marcos\n\c 1\n\v 1 Versículo de Marcos",
             fileName: 'mrk.usfm',
             extension: 'usfm'
         );
@@ -244,6 +271,7 @@ USFM;
 
     it('cleans verse text by removing reference markers', function () {
         $usfmContent = <<<'USFM'
+\id MAT - Bíblia Livre Para Todos
 \h Mateus
 \c 1
 \v 1 Texto limpo\f + \fr 1:1 \ft Referência\f* continuação do texto
@@ -266,8 +294,9 @@ USFM;
             ->and($verse->text)->toContain('{{1}}');
     });
 
-    it('handles case insensitive file name', function () {
+    it('handles case insensitive book abbreviation from \id marker', function () {
         $usfmContent = <<<'USFM'
+\id mat - Bíblia Livre Para Todos
 \h Mateus
 \c 1
 \v 1 Versículo
@@ -275,7 +304,7 @@ USFM;
 
         $file = new FileDTO(
             content: $usfmContent,
-            fileName: 'MAT.usfm',
+            fileName: 'any.usfm',
             extension: 'usfm'
         );
 
@@ -287,6 +316,7 @@ USFM;
 
     it('removes formatting markers from verse text', function () {
         $usfmContent = <<<'USFM'
+\id MAT - Bíblia Livre Para Todos
 \h Mateus
 \c 8
 \v 27 Os discípulos ficaram admirados e disseram: "Quem \it é\it* este? Até mesmo os ventos e as ondas lhe obedecem!"
@@ -311,6 +341,7 @@ USFM;
 
     it('removes multiple formatting markers from verse text', function () {
         $usfmContent = <<<'USFM'
+\id MAT - Bíblia Livre Para Todos
 \h Mateus
 \c 1
 \v 1 Texto com \it itálico\it* e \bd negrito\bd* e \em ênfase\em*

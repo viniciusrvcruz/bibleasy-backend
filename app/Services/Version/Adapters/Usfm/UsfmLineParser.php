@@ -20,6 +20,19 @@ class UsfmLineParser
     }
 
     /**
+     * Extract book abbreviation from \id marker
+     */
+    public function parseBookAbbreviation(string $line): ?string
+    {
+        if (!str_starts_with($line, '\\id ')) return null;
+
+        // Extract text after \id marker
+        $content = trim(substr($line, 4));
+
+        return substr($content, 0, 3);
+    }
+
+    /**
      * Extract chapter number from \c marker
      */
     public function parseChapterNumber(string $line): ?int

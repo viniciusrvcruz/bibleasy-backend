@@ -7,6 +7,7 @@ use App\Services\Version\DTOs\FileDTO;
 use App\Services\Version\DTOs\VersionDTO;
 use App\Services\Version\Interfaces\VersionAdapterInterface;
 use App\Services\Version\Adapters\Usfm\UsfmBookParser;
+use App\Services\Version\Adapters\Usfm\UsfmLineParser;
 use App\Exceptions\Version\VersionImportException;
 
 /**
@@ -16,7 +17,8 @@ use App\Exceptions\Version\VersionImportException;
 class UsfmAdapter implements VersionAdapterInterface
 {
     public function __construct(
-        private readonly UsfmBookParser $bookParser
+        private readonly UsfmBookParser $bookParser,
+        private readonly UsfmLineParser $lineParser
     ) {}
 
     /**
@@ -27,7 +29,7 @@ class UsfmAdapter implements VersionAdapterInterface
         $books = collect($files)->map(function ($file) {
             $this->validateFile($file);
 
-            $bookAbbreviation = $this->getBookAbbreviationFromFileName($file->fileName);
+            $bookAbbreviation = $this->getBookAbbreviation($file->content, $file->fileName);
 
             return $this->bookParser->parse($file->content, $bookAbbreviation);
         });
@@ -49,17 +51,27 @@ class UsfmAdapter implements VersionAdapterInterface
     }
 
     /**
-     * Extract book abbreviation from file name
-     * File name should be like "mat.usfm" or "MAT.usfm"
+     * Extract book abbreviation from first line in USFM content
      */
-    private function getBookAbbreviationFromFileName(string $fileName): BookAbbreviationEnum
+    private function getBookAbbreviation(string $content, string $fileName): BookAbbreviationEnum
     {
-        $nameWithoutExtension = pathinfo($fileName, PATHINFO_FILENAME);
-        $normalized = strtolower($nameWithoutExtension);
+        $lines = explode("\n", $content);
+        $firstLine = $lines[0] ?? '';
+
+        $abbreviation = $this->lineParser->parseBookAbbreviation($firstLine);
+
+        if ($abbreviation === null) {
+            throw new VersionImportException(
+                'missing_id_marker',
+                '\\id marker not found in USFM file ' . $fileName
+            );
+        }
+
+        $normalized = strtolower($abbreviation);
 
         return BookAbbreviationEnum::tryFrom($normalized) ?? throw new VersionImportException(
-            'invalid_file_name',
-            "File name '{$fileName}' does not match any book abbreviation from BookAbbreviationEnum"
+            'invalid_book_abbreviation',
+            "Book abbreviation '{$abbreviation}' from \\id marker does not match any book abbreviation from BookAbbreviationEnum in file {$fileName}"
         );
     }
 }
