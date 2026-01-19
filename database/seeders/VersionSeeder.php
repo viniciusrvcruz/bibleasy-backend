@@ -18,6 +18,8 @@ class VersionSeeder extends Seeder
      */
     public function run(): void
     {
+        if(app()->isProduction()) return;
+
         // Create a version for development
         $version = Version::create([
             'abbreviation' => 'DEV',
