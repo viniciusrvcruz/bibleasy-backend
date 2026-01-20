@@ -12,10 +12,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('verse_id')->constrained()->cascadeOnDelete();
             $table->string('slug');
-            $table->text('reference_text');
-            $table->string('target_book_abbreviation')->nullable();
-            $table->integer('target_chapter')->nullable();
-            $table->integer('target_verse')->nullable();
+            $table->text('text');
             $table->timestamps();
 
             $table->unique(['verse_id', 'slug']);
