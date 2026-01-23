@@ -1,0 +1,74 @@
+services:
+  # Nginx web server
+  nginx:
+    container_name: bible_nginx
+    build:
+      context: .
+      dockerfile: ./docker/production/nginx/Dockerfile
+    restart: unless-stopped
+    volumes:
+      # Mount the storage volume (read-only for Nginx)
+      - bible-storage:/var/www/storage:ro
+    networks:
+      - bible-network
+    ports:
+      - "${NGINX_PORT:-80}:80"
+    depends_on:
+      php-fpm:
+        condition: service_healthy
+
+  # PHP-FPM service
+  php-fpm:
+    container_name: bible_api
+    build:
+      context: .
+      dockerfile: ./docker/common/php-fpm/Dockerfile
+      target: production
+    restart: unless-stopped
+    volumes:
+      # Mount the storage volume for persistent data
+      - bible-storage:/var/www/storage
+    env_file:
+      - .env
+    networks:
+      - bible-network
+    healthcheck:
+      test: ["CMD-SHELL", "php-fpm-healthcheck || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  # PostgreSQL database
+  postgres:
+    image: postgres:18
+    container_name: bible_postgresql
+    restart: unless-stopped
+    ports:
+      - "${DB_PORT:-5432}:5432"
+    environment:
+      - POSTGRES_DB=${DB_DATABASE:-bible_db}
+      - POSTGRES_USER=${DB_USERNAME:-user}
+      - POSTGRES_PASSWORD=${DB_PASSWORD:-password}
+    volumes:
+      - bible-postgres-data:/var/lib/postgresql
+    networks:
+      - bible-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USERNAME:-user} -d ${DB_DATABASE:-bible_db}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+networks:
+  bible-network:
+    name: bible-network
+
+volumes:
+  bible-postgres-data:
+    name: bible-postgres-data-prod
+  bible-storage:
+    name: bible-storage-prod
