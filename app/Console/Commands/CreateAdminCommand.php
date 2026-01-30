@@ -16,8 +16,8 @@ class CreateAdminCommand extends Command
     public function handle(): int
     {
         // Only run in development environments
-        if (! App::environment(['local', 'testing'])) {
-            $this->error('This command can only be run in local or testing environments.');
+        if (app()->isProduction()) {
+            $this->error('This command can only be run in development environments.');
             $this->warn('Skipping admin creation.');
 
             return Command::FAILURE;
