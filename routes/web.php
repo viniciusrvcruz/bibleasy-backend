@@ -5,7 +5,9 @@ use App\Http\Controllers\Auth\UserSocialAuthController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
-    return view('welcome');
+    return response()->json([
+        'message' => 'Bible API',
+    ]);
 });
 
 Route::prefix('auth/admin')->group(function () {
