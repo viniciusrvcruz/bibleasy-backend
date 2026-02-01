@@ -1,0 +1,17 @@
+name: CD (Continuous Deployment)
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    name: Deploy on Coolify
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger deploy on Coolify
+        run: |
+          curl --fail --request GET \
+            "${{ secrets.COOLIFY_WEBHOOK }}" \
+            --header "Authorization: Bearer ${{ secrets.COOLIFY_TOKEN }}"
