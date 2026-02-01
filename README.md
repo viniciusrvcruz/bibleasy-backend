@@ -41,6 +41,7 @@
 - [Estrutura do Projeto](#-estrutura-do-projeto)
 - [Comandos Úteis](#-comandos-úteis)
 - [Como Contribuir](#-como-contribuir)
+- [Contribuidores](#-contribuidores)
 - [Licença](#-licença)
 
 ---
@@ -257,6 +258,27 @@ Contribuições são bem-vindas.
 | `refactor` | Refatoração |
 | `test` | Testes |
 | `chore` | Tarefas de manutenção |
+
+---
+
+## 🤝 Contribuidores
+
+<table>
+  <tr>
+    <td align="center">
+      <a href="https://github.com/viniciusrvcruz" target="_blank" rel="noopener noreferrer">
+        <img src="https://github.com/viniciusrvcruz.png" width="80px;" alt="Vinicius Cruz"/><br>
+        <sub><b>Vinicius Cruz (autor)</b></sub>
+      </a><br>
+      <a href="https://github.com/viniciusrvcruz" title="GitHub" target="_blank" rel="noopener noreferrer">
+        <img src="https://skillicons.dev/icons?i=github" width="25px" />
+      </a>
+      <a href="https://www.linkedin.com/in/viniciuscruz7" title="LinkedIn" target="_blank" rel="noopener noreferrer">
+        <img src="https://skillicons.dev/icons?i=linkedin" width="25px" />
+      </a>
+    </td>
+  </tr>
+</table>
 
 ---
 
