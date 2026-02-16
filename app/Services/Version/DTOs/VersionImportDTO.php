@@ -2,6 +2,8 @@
 
 namespace App\Services\Version\DTOs;
 
+use App\Enums\VersionTextSourceEnum;
+
 class VersionImportDTO
 {
     /**
@@ -14,5 +16,8 @@ class VersionImportDTO
         public readonly string $versionName,
         public readonly string $language,
         public readonly string $copyright,
+        public readonly VersionTextSourceEnum $textSource,
+        public readonly ?string $externalVersionId = null,
+        public readonly ?int $cacheTtl = null,
     ) {}
 }

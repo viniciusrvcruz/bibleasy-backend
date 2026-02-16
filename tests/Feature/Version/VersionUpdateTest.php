@@ -1,6 +1,7 @@
 <?php
 
 use App\Enums\VersionLanguageEnum;
+use App\Enums\VersionTextSourceEnum;
 use App\Models\Version;
 
 describe('Version Update', function () {
@@ -19,6 +20,7 @@ describe('Version Update', function () {
             'name' => 'New Full Name',
             'language' => VersionLanguageEnum::PORTUGUESE_BR->value,
             'copyright' => 'New Copyright',
+            'text_source' => VersionTextSourceEnum::DATABASE->value,
         ]);
 
         $response->assertStatus(200);

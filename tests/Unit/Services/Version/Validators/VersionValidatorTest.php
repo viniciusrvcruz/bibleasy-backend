@@ -3,6 +3,7 @@
 use App\Services\Version\Validators\VersionValidator;
 use App\Services\Version\DTOs\{VersionDTO, BookDTO, ChapterDTO, VerseDTO, VerseReferenceDTO};
 use App\Enums\BookAbbreviationEnum;
+use App\Enums\VersionTextSourceEnum;
 use App\Exceptions\Version\VersionImportException;
 
 describe('VersionValidator', function () {
@@ -23,7 +24,7 @@ describe('VersionValidator', function () {
 
         $dto = new VersionDTO($books);
 
-        expect(fn() => $this->validator->validate($dto))->not->toThrow(Exception::class);
+        expect(fn() => $this->validator->validate($dto, VersionTextSourceEnum::DATABASE))->not->toThrow(Exception::class);
     });
 
     it('throws exception for book without chapters', function () {
@@ -35,7 +36,7 @@ describe('VersionValidator', function () {
             )
         ]);
 
-        $this->validator->validate(new VersionDTO($books));
+        $this->validator->validate(new VersionDTO($books), VersionTextSourceEnum::DATABASE);
     })->throws(VersionImportException::class, 'is missing chapters');
 
     it('throws exception for chapter without verses', function () {
@@ -47,7 +48,7 @@ describe('VersionValidator', function () {
             )
         ]);
 
-        $this->validator->validate(new VersionDTO($books));
+        $this->validator->validate(new VersionDTO($books), VersionTextSourceEnum::DATABASE);
     })->throws(VersionImportException::class, 'is missing verses');
 
     it('throws exception for empty verse text', function () {
@@ -61,7 +62,7 @@ describe('VersionValidator', function () {
             )
         ]);
 
-        $this->validator->validate(new VersionDTO($books));
+        $this->validator->validate(new VersionDTO($books), VersionTextSourceEnum::DATABASE);
     })->throws(VersionImportException::class, 'has empty text');
 
     it('throws exception when book is not an instance of BookDTO', function () {
@@ -74,7 +75,7 @@ describe('VersionValidator', function () {
 
         $dto = new VersionDTO($books);
 
-        $this->validator->validate($dto);
+        $this->validator->validate($dto, VersionTextSourceEnum::DATABASE);
     })->throws(VersionImportException::class, 'is not an instance of BookDTO');
 
     it('throws exception when chapter is not an instance of ChapterDTO', function () {
@@ -90,7 +91,7 @@ describe('VersionValidator', function () {
 
         $dto = new VersionDTO($books);
 
-        $this->validator->validate($dto);
+        $this->validator->validate($dto, VersionTextSourceEnum::DATABASE);
     })->throws(VersionImportException::class, 'is not an instance of ChapterDTO');
 
     it('throws exception when verse is not an instance of VerseDTO', function () {
@@ -108,7 +109,7 @@ describe('VersionValidator', function () {
 
         $dto = new VersionDTO($books);
 
-        $this->validator->validate($dto);
+        $this->validator->validate($dto, VersionTextSourceEnum::DATABASE);
     })->throws(VersionImportException::class, 'is not an instance of VerseDTO');
 
     it('validates verse with valid references', function () {
@@ -131,7 +132,7 @@ describe('VersionValidator', function () {
 
         $dto = new VersionDTO($books);
 
-        expect(fn() => $this->validator->validate($dto))->not->toThrow(Exception::class);
+        expect(fn() => $this->validator->validate($dto, VersionTextSourceEnum::DATABASE))->not->toThrow(Exception::class);
     });
 
     it('throws exception when reference is not an instance of VerseReferenceDTO', function () {
@@ -153,7 +154,7 @@ describe('VersionValidator', function () {
 
         $dto = new VersionDTO($books);
 
-        $this->validator->validate($dto);
+        $this->validator->validate($dto, VersionTextSourceEnum::DATABASE);
     })->throws(VersionImportException::class, 'is not an instance of VerseReferenceDTO');
 
     it('throws exception when reference slug is empty', function () {
@@ -175,7 +176,7 @@ describe('VersionValidator', function () {
 
         $dto = new VersionDTO($books);
 
-        $this->validator->validate($dto);
+        $this->validator->validate($dto, VersionTextSourceEnum::DATABASE);
     })->throws(VersionImportException::class, 'has empty slug');
 
     it('throws exception when reference text is empty', function () {
@@ -197,7 +198,7 @@ describe('VersionValidator', function () {
 
         $dto = new VersionDTO($books);
 
-        $this->validator->validate($dto);
+        $this->validator->validate($dto, VersionTextSourceEnum::DATABASE);
     })->throws(VersionImportException::class, 'has empty text');
 
     it('throws exception when reference slug is missing in verse text', function () {
@@ -219,7 +220,7 @@ describe('VersionValidator', function () {
 
         $dto = new VersionDTO($books);
 
-        $this->validator->validate($dto);
+        $this->validator->validate($dto, VersionTextSourceEnum::DATABASE);
     })->throws(VersionImportException::class, 'is missing its placeholder');
 
     it('validates multiple references in the same verse', function () {
@@ -243,7 +244,7 @@ describe('VersionValidator', function () {
 
         $dto = new VersionDTO($books);
 
-        expect(fn() => $this->validator->validate($dto))->not->toThrow(Exception::class);
+        expect(fn() => $this->validator->validate($dto, VersionTextSourceEnum::DATABASE))->not->toThrow(Exception::class);
     });
 
     it('throws exception when verse text contains USFM markers', function () {
@@ -261,7 +262,7 @@ describe('VersionValidator', function () {
 
         $dto = new VersionDTO($books);
 
-        $this->validator->validate($dto);
+        $this->validator->validate($dto, VersionTextSourceEnum::DATABASE);
     })->throws(VersionImportException::class, 'contains USFM markers');
 
     it('throws exception when verse text contains malformed placeholders', function () {
@@ -279,7 +280,7 @@ describe('VersionValidator', function () {
 
         $dto = new VersionDTO($books);
 
-        $this->validator->validate($dto);
+        $this->validator->validate($dto, VersionTextSourceEnum::DATABASE);
     })->throws(VersionImportException::class, 'contains invalid characters or malformed placeholders');
 
     it('throws exception when verse text contains unclosed curly braces', function () {
@@ -297,7 +298,7 @@ describe('VersionValidator', function () {
 
         $dto = new VersionDTO($books);
 
-        $this->validator->validate($dto);
+        $this->validator->validate($dto, VersionTextSourceEnum::DATABASE);
     })->throws(VersionImportException::class, 'contains invalid characters or malformed placeholders');
 
     it('validates verse text with only text and valid placeholders', function () {
@@ -319,7 +320,7 @@ describe('VersionValidator', function () {
 
         $dto = new VersionDTO($books);
 
-        expect(fn() => $this->validator->validate($dto))->not->toThrow(Exception::class);
+        expect(fn() => $this->validator->validate($dto, VersionTextSourceEnum::DATABASE))->not->toThrow(Exception::class);
     });
 
     it('throws exception when reference text contains USFM markers', function () {
@@ -341,7 +342,7 @@ describe('VersionValidator', function () {
 
         $dto = new VersionDTO($books);
 
-        $this->validator->validate($dto);
+        $this->validator->validate($dto, VersionTextSourceEnum::DATABASE);
     })->throws(VersionImportException::class, 'contains USFM markers');
 
     it('throws exception when reference text contains malformed placeholders', function () {
@@ -363,7 +364,7 @@ describe('VersionValidator', function () {
 
         $dto = new VersionDTO($books);
 
-        $this->validator->validate($dto);
+        $this->validator->validate($dto, VersionTextSourceEnum::DATABASE);
     })->throws(VersionImportException::class, 'contains invalid characters or malformed placeholders');
 
     it('validates reference text with only clean text', function () {
@@ -385,6 +386,39 @@ describe('VersionValidator', function () {
 
         $dto = new VersionDTO($books);
 
-        expect(fn() => $this->validator->validate($dto))->not->toThrow(Exception::class);
+        expect(fn() => $this->validator->validate($dto, VersionTextSourceEnum::DATABASE))->not->toThrow(Exception::class);
     });
+
+    // External API source validation tests
+    it('validates external API source with empty verse text', function () {
+        $books = collect([
+            new BookDTO(
+                'Genesis',
+                BookAbbreviationEnum::GEN,
+                collect([
+                    new ChapterDTO(1, collect([new VerseDTO(1, '')]))
+                ])
+            )
+        ]);
+
+        $dto = new VersionDTO($books);
+
+        expect(fn() => $this->validator->validate($dto, VersionTextSourceEnum::API_BIBLE))->not->toThrow(Exception::class);
+    });
+
+    it('throws exception when external API source has non-empty verse text', function () {
+        $books = collect([
+            new BookDTO(
+                'Genesis',
+                BookAbbreviationEnum::GEN,
+                collect([
+                    new ChapterDTO(1, collect([new VerseDTO(1, 'Some text')]))
+                ])
+            )
+        ]);
+
+        $dto = new VersionDTO($books);
+
+        $this->validator->validate($dto, VersionTextSourceEnum::API_BIBLE);
+    })->throws(VersionImportException::class, 'must have empty text for external API sources');
 });

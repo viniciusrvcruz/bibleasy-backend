@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Enums\VersionTextSourceEnum;
 use App\Enums\VersionLanguageEnum;
 use App\Services\Version\Factories\VersionAdapterFactory;
 use Illuminate\Foundation\Http\FormRequest;
@@ -49,6 +50,23 @@ class VersionRequest extends FormRequest
                 'nullable',
                 'string',
                 'max:2000'
+            ],
+            'text_source' => [
+                $isStore ? 'required' : 'sometimes',
+                'string',
+                Rule::enum(VersionTextSourceEnum::class)
+            ],
+            'external_version_id' => [
+                'nullable',
+                'required_unless:text_source,' . VersionTextSourceEnum::DATABASE->value,
+                'string',
+                'max:255'
+            ],
+            'cache_ttl' => [
+                'nullable',
+                'required_unless:text_source,' . VersionTextSourceEnum::DATABASE->value,
+                'integer',
+                'min:1'
             ],
         ];
     }

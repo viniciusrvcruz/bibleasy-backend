@@ -2,6 +2,7 @@
 
 namespace App\Services\Version\Factories;
 
+use App\Enums\VersionTextSourceEnum;
 use App\Services\Version\DTOs\FileDTO;
 use App\Services\Version\DTOs\VersionImportDTO;
 use Illuminate\Http\Request;
@@ -19,6 +20,8 @@ class VersionImportDTOFactory
             extension: $file->getClientOriginalExtension(),
         ))->toArray();
 
+        $textSource = VersionTextSourceEnum::from($request->input('text_source'));
+
         return new VersionImportDTO(
             files: $files,
             adapterName: $request->input('adapter'),
@@ -26,6 +29,11 @@ class VersionImportDTOFactory
             versionName: $request->input('name'),
             language: $request->input('language'),
             copyright: $request->input('copyright', ''),
+            textSource: $textSource,
+            externalVersionId: $request->input('external_version_id'),
+            cacheTtl: $textSource !== VersionTextSourceEnum::DATABASE
+                ? (int) $request->input('cache_ttl')
+                : null,
         );
     }
 }
