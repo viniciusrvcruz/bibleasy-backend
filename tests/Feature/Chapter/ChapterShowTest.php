@@ -24,8 +24,13 @@ describe('Chapter Show', function () {
 
         $response->assertStatus(200);
         $response->assertJsonStructure([
-            'id', 'number', 'book', 'verses' => [['id', 'number', 'text']]
+            'number',
+            'book' => ['name', 'abbreviation'],
+            'verses' => [['number', 'text', 'titles', 'references']],
         ]);
+        $response->assertJsonPath('number', 1);
+        $response->assertJsonPath('book.name', BookAbbreviationEnum::GEN->value);
+        $response->assertJsonPath('book.abbreviation', 'gen');
     });
 
     it('returns 404 when chapter does not exist', function () {

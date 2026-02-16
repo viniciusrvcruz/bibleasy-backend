@@ -43,4 +43,9 @@ return [
         'redirect' => "/auth/admin/callback/" . AdminAuthProvider::GOOGLE->value,
     ],
 
+    'api_bible' => [
+        'key' => env('API_BIBLE_KEY'),
+        'base_url' => env('API_BIBLE_BASE_URL'),
+    ],
+
 ];

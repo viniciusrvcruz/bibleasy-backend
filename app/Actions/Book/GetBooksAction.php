@@ -4,6 +4,7 @@ namespace App\Actions\Book;
 
 use App\Models\Version;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Facades\Cache;
 
 class GetBooksAction
 {
@@ -12,14 +13,22 @@ class GetBooksAction
      */
     public function execute(Version $version): Collection
     {
-        return $version->books()
-            ->with([
-                'chapters' => function ($query) {
-                    $query->withCount('verses')
-                        ->orderBy('number');
-                },
-            ])
-            ->orderBy('order')
-            ->get();
+        $cacheKey = "bible:{$version->abbreviation}:books";
+
+        $ttl = $version->cache_ttl
+            ? now()->addSeconds($version->cache_ttl)
+            : null;
+
+        return Cache::remember($cacheKey, $ttl, function () use ($version) {
+            return $version->books()
+                ->with([
+                    'chapters' => function ($query) {
+                        $query->withCount('verses')
+                            ->orderBy('number');
+                    },
+                ])
+                ->orderBy('order')
+                ->get();
+        });
     }
 }
