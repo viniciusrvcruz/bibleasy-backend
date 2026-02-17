@@ -7,7 +7,6 @@ use App\Exceptions\Chapter\ChapterSourceException;
 use App\Models\Chapter;
 use App\Models\Version;
 use App\Services\Chapter\DTOs\ChapterResponseDTO;
-use App\Services\Chapter\Interfaces\ChapterSourceAdapterInterface;
 use App\Services\Chapter\Parsers\ApiBibleContentParser;
 use Illuminate\Http\Client\RequestException;
 use Illuminate\Support\Facades\Http;
@@ -15,19 +14,20 @@ use Illuminate\Database\Eloquent\Builder;
 
 /**
  * Fetches chapter content from api.bible and maps to ChapterResponseDTO.
+ * Raw API response is cached; parsing and DTO building run on every request.
  * Validates chapter exists in DB before making external requests.
  */
-class ApiBibleChapterAdapter implements ChapterSourceAdapterInterface
+class ApiBibleChapterAdapter extends AbstractCachedChapterAdapter
 {
     public function __construct(
         private readonly ApiBibleContentParser $parser
     ) {}
 
-    public function getChapter(
+    protected function fetchRawChapter(
         Version $version,
         BookAbbreviationEnum $abbreviation,
         int $number
-    ): ChapterResponseDTO {
+    ): array {
         $this->validateChapterExists($version, $abbreviation, $number);
 
         $externalId = $version->external_version_id;
@@ -65,21 +65,7 @@ class ApiBibleChapterAdapter implements ChapterSourceAdapterInterface
                 throw new ChapterSourceException('invalid_response', 'Invalid API Bible response structure.');
             }
 
-            $content = $data['data']['content'];
-            $bookIdFromApi = $data['data']['bookId'] ?? $bookId;
-            $chapterNumber = (string) ($data['data']['number'] ?? $number);
-
-            $verses = $this->parser->parse($content, $bookIdFromApi, $chapterNumber);
-
-            $book = $version->books()->where('abbreviation', $abbreviation)->first();
-            $bookName = $book?->name ?? $abbreviation->value;
-
-            return new ChapterResponseDTO(
-                number: $number,
-                bookName: $bookName,
-                bookAbbreviation: $abbreviation,
-                verses: $verses
-            );
+            return $data;
         } catch (ChapterSourceException $e) {
             throw $e;
         } catch (RequestException $e) {
@@ -88,6 +74,29 @@ class ApiBibleChapterAdapter implements ChapterSourceAdapterInterface
                 'API Bible request failed: ' . $e->getMessage()
             );
         }
+    }
+
+    protected function processRawToDto(
+        array $raw,
+        Version $version,
+        BookAbbreviationEnum $abbreviation,
+        int $number
+    ): ChapterResponseDTO {
+        $content = $raw['data']['content'] ?? [];
+        $bookId = $raw['data']['bookId'] ?? strtoupper($abbreviation->value);
+        $chapterNumber = (string) ($raw['data']['number'] ?? $number);
+
+        $verses = $this->parser->parse($content, $bookId, $chapterNumber);
+
+        $book = $version->books()->where('abbreviation', $abbreviation)->first();
+        $bookName = $book?->name ?? $abbreviation->value;
+
+        return new ChapterResponseDTO(
+            number: $number,
+            bookName: $bookName,
+            bookAbbreviation: $abbreviation,
+            verses: $verses
+        );
     }
 
     /**
