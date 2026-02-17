@@ -50,9 +50,8 @@ describe('GetChapterAction', function () {
             ->and($second->verses->first()->text)->toBe('Cached.');
     });
 
-    it('uses cache key with version abbreviation and book and chapter number', function () {
+    it('uses cache key with version id and book and chapter number', function () {
         $version = Version::factory()->create([
-            'abbreviation' => 'nvi',
             'cache_ttl' => 60,
             'text_source' => VersionTextSourceEnum::DATABASE,
         ]);
@@ -62,7 +61,7 @@ describe('GetChapterAction', function () {
         ]);
         Chapter::factory()->create(['number' => 119, 'book_id' => $book->id]);
 
-        $key = "bible:nvi:psa:119";
+        $key = "bible:{$version->id}:psa:119";
         Cache::forget($key);
         expect(Cache::has($key))->toBeFalse();
 

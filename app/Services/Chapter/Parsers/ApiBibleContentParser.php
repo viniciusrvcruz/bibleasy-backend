@@ -38,10 +38,6 @@ class ApiBibleContentParser
 
     private ?int $currentVerseNumber = null;
 
-    private ?string $lastParaStyle = null;
-
-    private ?int $lastVerseInPara = null;
-
     /** @var array<int, bool> */
     private array $verseReceivedContentThisPara = [];
 
@@ -55,7 +51,6 @@ class ApiBibleContentParser
      */
     public function parse(array $content, string $bookId, string $chapterNumber): Collection
     {
-        $this->reset();
         $this->parseContext = $bookId . '.' . $chapterNumber;
         $knownStyles = $this->getKnownParagraphStyles();
 
@@ -66,7 +61,6 @@ class ApiBibleContentParser
 
             $style = $para['attrs']['style'] ?? '';
             $items = $para['items'] ?? [];
-            $this->lastParaStyle = $style;
 
             if ($style === self::CHAPTER_LABEL_STYLE) {
                 $this->processChapterLabelParagraph($items, $bookId, $chapterNumber, $style);
@@ -162,19 +156,6 @@ class ApiBibleContentParser
             self::REFERENCE_TITLE_STYLES,
             UsfmMarkers::PARAGRAPH_BREAK_MARKERS
         )));
-    }
-
-    private function reset(): void
-    {
-        $this->versesData = [];
-        $this->titleBuffer = [];
-        $this->verseSlugCount = [];
-        $this->currentVerseNumber = null;
-        $this->lastParaStyle = null;
-        $this->lastVerseInPara = null;
-        $this->verseReceivedContentThisPara = [];
-        $this->parseContext = '';
-        $this->warnings = [];
     }
 
     /**
@@ -330,7 +311,6 @@ class ApiBibleContentParser
         $this->verseReceivedContentThisPara[$verseNumber] = true;
         $this->appendVerseText($verseNumber, $text);
         $this->currentVerseNumber = $verseNumber;
-        $this->lastVerseInPara = $verseNumber;
     }
 
     private function warnSkippedTextIfNeeded(string $text, string $paragraphStyle, string $reason): void
@@ -447,7 +427,6 @@ class ApiBibleContentParser
         }
         $this->titleBuffer = [];
         $this->currentVerseNumber = $number;
-        $this->lastVerseInPara = $number;
     }
 
     private function ensureVerseExists(int $number): void

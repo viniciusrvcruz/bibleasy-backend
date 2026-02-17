@@ -8,7 +8,6 @@ use App\Models\Chapter;
 use App\Models\Version;
 use App\Services\Chapter\DTOs\ChapterResponseDTO;
 use App\Services\Chapter\Parsers\ApiBibleContentParser;
-use Illuminate\Http\Client\RequestException;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Database\Eloquent\Builder;
 
@@ -31,49 +30,38 @@ class ApiBibleChapterAdapter extends AbstractCachedChapterAdapter
         $this->validateChapterExists($version, $abbreviation, $number);
 
         $externalId = $version->external_version_id;
-        if (empty($externalId)) {
-            throw new ChapterSourceException('invalid_response', 'Version has no external_version_id for api.bible.');
-        }
 
-        $baseUrl = rtrim(config('services.api_bible.base_url', ''), '/');
-        $key = config('services.api_bible.key', '');
-        if ($baseUrl === '' || $key === '') {
+        $baseUrl = rtrim(config('services.api_bible.base_url'), '/');
+        $key = config('services.api_bible.key');
+
+        if (empty($baseUrl) || empty($key)) {
             throw new ChapterSourceException('external_api_error', 'API Bible is not configured.');
         }
 
         $bookId = strtoupper($abbreviation->value);
         $url = "{$baseUrl}/bibles/{$externalId}/chapters/{$bookId}.{$number}";
 
-        try {
-            $response = Http::withHeaders(['api-key' => $key])
-                ->timeout(5)
-                ->get($url, [
-                    'content-type' => 'json',
-                    'include-notes' => 'true',
-                    'include-titles' => 'true'
-                ]);
+        $response = Http::withHeaders(['api-key' => $key])
+            ->timeout(5)
+            ->get($url, [
+                'content-type' => 'json',
+                'include-notes' => 'true',
+                'include-titles' => 'true'
+            ]);
 
-            if (! $response->successful()) {
-                throw new ChapterSourceException(
-                    'external_api_error',
-                    'API Bible request failed: ' . $response->status()
-                );
-            }
-
-            $data = $response->json();
-            if (! is_array($data) || ! isset($data['data']['content']) || ! is_array($data['data']['content'])) {
-                throw new ChapterSourceException('invalid_response', 'Invalid API Bible response structure.');
-            }
-
-            return $data;
-        } catch (ChapterSourceException $e) {
-            throw $e;
-        } catch (RequestException $e) {
+        if (! $response->successful()) {
             throw new ChapterSourceException(
                 'external_api_error',
-                'API Bible request failed: ' . $e->getMessage()
+                'API Bible request failed: ' . $response->status()
             );
         }
+
+        $data = $response->json();
+        if (! is_array($data) || ! isset($data['data']['content']) || ! is_array($data['data']['content'])) {
+            throw new ChapterSourceException('invalid_response', 'Invalid API Bible response structure.');
+        }
+
+        return $data;
     }
 
     protected function processRawToDto(
@@ -82,7 +70,7 @@ class ApiBibleChapterAdapter extends AbstractCachedChapterAdapter
         BookAbbreviationEnum $abbreviation,
         int $number
     ): ChapterResponseDTO {
-        $content = $raw['data']['content'] ?? [];
+        $content = $raw['data']['content'];
         $bookId = $raw['data']['bookId'] ?? strtoupper($abbreviation->value);
         $chapterNumber = (string) ($raw['data']['number'] ?? $number);
 

@@ -27,7 +27,7 @@ abstract class AbstractCachedChapterAdapter implements ChapterSourceAdapterInter
 
         $raw = $ttl !== null
             ? Cache::remember($key, $ttl, fn () => $this->fetchRawChapter($version, $abbreviation, $number))
-            : $this->fetchRawChapter($version, $abbreviation, $number);
+            : Cache::rememberForever($key, fn () => $this->fetchRawChapter($version, $abbreviation, $number));
 
         return $this->processRawToDto($raw, $version, $abbreviation, $number);
     }
