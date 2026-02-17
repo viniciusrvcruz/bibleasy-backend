@@ -134,76 +134,58 @@ describe('ApiBibleContentParser', function () {
             ->and($v->text)->toContain('perigo{{1}}, mas');
     });
 
-    it('parses real api.bible response structure from gen_response.json', function () {
-        $path = dirname(__DIR__, 5) . '/gen_response.json';
-        if (! is_file($path)) {
-            $this->markTestSkipped('gen_response.json not found');
-        }
+    it('parses unified api.bible fixture with all structure variants', function () {
+        $path = dirname(__DIR__, 4) . '/Fixtures/api_bible_chapter_content.json';
         $json = json_decode(file_get_contents($path), true);
-        $content = $json['data']['content'] ?? null;
-        if (! is_array($content)) {
-            $this->markTestSkipped('gen_response.json has no data.content');
-        }
+        $content = $json['data']['content'];
 
         $parser = app(ApiBibleContentParser::class);
-        $verses = $parser->parse($content, 'GEN', '1');
+        $verses = $parser->parse($content, 'TST', '1');
 
-        expect($verses)->toHaveCount(31);
-        $first = $verses->first();
-        expect($first->number)->toBe(1)
-            ->and($first->titles)->toHaveCount(1)
-            ->and($first->titles->first()->text)->toBe('O Princípio')
-            ->and($first->titles->first()->type)->toBe(VerseTitleTypeEnum::SECTION)
-            ->and($first->text)->toContain('No princípio Deus criou os céus e a terra')
-            ->and($first->references)->toHaveCount(1)
-            ->and($first->text)->toContain('{{1}}');
-        $last = $verses->last();
-        expect($last->number)->toBe(31);
-    });
+        expect($verses)->toHaveCount(6);
 
-    it('parses real api.bible response structure from jhn.json', function () {
-        $path = dirname(__DIR__, 5) . '/jhn.json';
-        if (! is_file($path)) {
-            $this->markTestSkipped('jhn.json not found');
-        }
-        $json = json_decode(file_get_contents($path), true);
-        $content = $json['data']['content'] ?? null;
-        if (! is_array($content)) {
-            $this->markTestSkipped('jhn.json has no data.content');
-        }
+        // Verse 1: section title (s1), reference title (r), chapter-label note (ref_prefix), text, inline footnote
+        $v1 = $verses->get(0);
+        expect($v1->number)->toBe(1)
+            ->and($v1->titles)->toHaveCount(2)
+            ->and($v1->titles->get(0)->text)->toBe('Titulo secao fixture')
+            ->and($v1->titles->get(0)->type)->toBe(VerseTitleTypeEnum::SECTION)
+            ->and($v1->titles->get(1)->text)->toBe('Titulo referencia fixture')
+            ->and($v1->titles->get(1)->type)->toBe(VerseTitleTypeEnum::REFERENCE)
+            ->and($v1->text)->toStartWith('{{1}}')
+            ->and($v1->text)->toContain('Texto verso um corpo principal')
+            ->and($v1->text)->toContain('{{2}}')
+            ->and($v1->references)->toHaveCount(2)
+            ->and($v1->references->get(0)->slug)->toBe('1')
+            ->and($v1->references->get(0)->text)->toContain('Nota sintética no cl')
+            ->and($v1->references->get(1)->slug)->toBe('2')
+            ->and($v1->references->get(1)->text)->toContain('Variante alternativa sintetica');
 
-        $parser = app(ApiBibleContentParser::class);
-        $verses = $parser->parse($content, 'JHN', '1');
+        // Verse 2: text + cross-reference note (style x)
+        $v2 = $verses->get(1);
+        expect($v2->number)->toBe(2)
+            ->and($v2->text)->toContain('Paragrafo dois lorem ipsum')
+            ->and($v2->text)->toContain('{{1}}')
+            ->and($v2->references)->toHaveCount(1)
+            ->and($v2->references->first()->text)->toBe('Ref cruzada ficticia Xyz 2.1-3');
 
-        expect($verses)->toHaveCount(51);
-        $first = $verses->first();
-        expect($first->number)->toBe(1)
-            ->and($first->titles)->toHaveCount(1)
-            ->and($first->titles->first()->type)->toBe(VerseTitleTypeEnum::SECTION)
-            ->and($first->text)->toContain('Palavra');
-        $last = $verses->last();
-        expect($last->number)->toBe(51);
-    });
+        // Verses 3, 4, 5: multiple verses in same paragraph; verse 5 has continuation via para with vid
+        $v3 = $verses->get(2);
+        expect($v3->number)->toBe(3)->and($v3->text)->toContain('Verso tres consectetur');
+        $v4 = $verses->get(3);
+        expect($v4->number)->toBe(4)->and($v4->text)->toContain('Verso quatro sed do');
+        $v5 = $verses->get(4);
+        expect($v5->number)->toBe(5)
+            ->and($v5->text)->toContain('Verso cinco incididunt')
+            ->and($v5->text)->toContain('Continuacao verso cinco et dolore');
 
-    it('parses real api.bible response structure from psa.json', function () {
-        $path = dirname(__DIR__, 5) . '/psa.json';
-        if (! is_file($path)) {
-            $this->markTestSkipped('psa.json not found');
-        }
-        $json = json_decode(file_get_contents($path), true);
-        $content = $json['data']['content'] ?? null;
-        if (! is_array($content)) {
-            $this->markTestSkipped('psa.json has no data.content');
-        }
-
-        $parser = app(ApiBibleContentParser::class);
-        $verses = $parser->parse($content, 'PSA', '119');
-
-        expect($verses)->toHaveCount(176);
-        $first = $verses->first();
-        expect($first->number)->toBe(1)
-            ->and($first->text)->toContain('Como são felizes');
-        $last = $verses->last();
-        expect($last->number)->toBe(176);
+        // Verse 6: paragraph break (q1 then q2) inserts newline; char (sc) inline text
+        $v6 = $verses->get(5);
+        expect($v6->number)->toBe(6)
+            ->and($v6->text)->toContain('Verso seis primeira linha')
+            ->and($v6->text)->toContain("\n")
+            ->and($v6->text)->toContain('Segunda linha')
+            ->and($v6->text)->toContain('Destaque')
+            ->and($v6->text)->toContain('fim do verso seis');
     });
 });

@@ -1,0 +1,272 @@
+{
+    "data": {
+        "id": "a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d",
+        "bibleId": "f9e8d7c6-b5a4-3210-9876-543210fedcba",
+        "number": "1",
+        "bookId": "TST",
+        "reference": "Lorem ipsum fixture",
+        "copyright": "Lorem ipsum fixture. All ids and text are synthetic for testing.",
+        "verseCount": 6,
+        "content": [
+            {
+                "name": "para",
+                "type": "tag",
+                "attrs": { "style": "cl" },
+                "items": [
+                    {
+                        "text": "Blurb caput ",
+                        "type": "text"
+                    },
+                    {
+                        "name": "note",
+                        "type": "tag",
+                        "attrs": {
+                            "caller": "+",
+                            "style": "f",
+                            "id": "b2c3d4e5-f6a7-4b8c-9d0e-1f2a3b4c5d6e",
+                            "verseId": "TST.1.1"
+                        },
+                        "items": [
+                            {
+                                "name": "char",
+                                "type": "tag",
+                                "attrs": { "style": "fr", "closed": "false" },
+                                "items": [{ "text": "1.1 ", "type": "text" }]
+                            },
+                            {
+                                "name": "char",
+                                "type": "tag",
+                                "attrs": { "style": "ft", "closed": "false" },
+                                "items": [{ "text": "Nota sintética no cl para fixture.", "type": "text" }]
+                            }
+                        ]
+                    }
+                ]
+            },
+            {
+                "name": "para",
+                "type": "tag",
+                "attrs": { "style": "s1" },
+                "items": [{ "text": "Titulo secao fixture", "type": "text" }]
+            },
+            {
+                "name": "para",
+                "type": "tag",
+                "attrs": { "style": "r" },
+                "items": [{ "text": "Titulo referencia fixture", "type": "text" }]
+            },
+            {
+                "name": "para",
+                "type": "tag",
+                "attrs": { "style": "p" },
+                "items": [
+                    {
+                        "name": "verse",
+                        "type": "tag",
+                        "attrs": { "number": "1", "style": "v" },
+                        "items": [{ "text": "1", "type": "text" }]
+                    },
+                    {
+                        "text": "Texto verso um corpo principal do paragrafo.",
+                        "type": "text",
+                        "attrs": {
+                            "verseId": "TST.1.1",
+                            "verseOrgIds": ["TST.1.1"]
+                        }
+                    },
+                    {
+                        "name": "note",
+                        "type": "tag",
+                        "attrs": {
+                            "caller": "+",
+                            "style": "f",
+                            "id": "c3d4e5f6-a7b8-4c9d-0e1f-2a3b4c5d6e7f",
+                            "verseId": "TST.1.1"
+                        },
+                        "items": [
+                            {
+                                "name": "char",
+                                "type": "tag",
+                                "attrs": { "style": "fr", "closed": "false" },
+                                "items": [{ "text": "1.1 ", "type": "text" }]
+                            },
+                            {
+                                "name": "char",
+                                "type": "tag",
+                                "attrs": { "style": "ft", "closed": "false" },
+                                "items": [{ "text": "Ou ", "type": "text" }]
+                            },
+                            {
+                                "name": "char",
+                                "type": "tag",
+                                "attrs": { "style": "fqa", "closed": "false" },
+                                "items": [{ "text": "Variante alternativa sintetica do verso um.", "type": "text" }]
+                            }
+                        ]
+                    }
+                ]
+            },
+            {
+                "name": "para",
+                "type": "tag",
+                "attrs": { "style": "p" },
+                "items": [
+                    {
+                        "name": "verse",
+                        "type": "tag",
+                        "attrs": { "number": "2", "style": "v" },
+                        "items": [{ "text": "2", "type": "text" }]
+                    },
+                    {
+                        "text": "Paragrafo dois lorem ipsum dolor sit amet.",
+                        "type": "text",
+                        "attrs": {
+                            "verseId": "TST.1.2",
+                            "verseOrgIds": ["TST.1.2"]
+                        }
+                    },
+                    {
+                        "name": "note",
+                        "type": "tag",
+                        "attrs": {
+                            "caller": "*",
+                            "style": "x",
+                            "verseId": "TST.1.2"
+                        },
+                        "items": [
+                            {
+                                "name": "char",
+                                "type": "tag",
+                                "attrs": { "style": "xt" },
+                                "items": [{ "text": "Ref cruzada ficticia Xyz 2.1-3", "type": "text" }]
+                            }
+                        ]
+                    }
+                ]
+            },
+            {
+                "name": "para",
+                "type": "tag",
+                "attrs": { "style": "p" },
+                "items": [
+                    {
+                        "name": "verse",
+                        "type": "tag",
+                        "attrs": { "number": "3", "style": "v" },
+                        "items": [{ "text": "3", "type": "text" }]
+                    },
+                    {
+                        "text": "Verso tres consectetur adipiscing elit.",
+                        "type": "text",
+                        "attrs": {
+                            "verseId": "TST.1.3",
+                            "verseOrgIds": ["TST.1.3"]
+                        }
+                    },
+                    {
+                        "name": "verse",
+                        "type": "tag",
+                        "attrs": { "number": "4", "style": "v", "sid": "TST 1:4" },
+                        "items": [{ "text": "4", "type": "text" }]
+                    },
+                    {
+                        "text": "Verso quatro sed do eiusmod tempor.",
+                        "type": "text",
+                        "attrs": {
+                            "verseId": "TST.1.4",
+                            "verseOrgIds": ["TST.1.4"]
+                        }
+                    },
+                    {
+                        "name": "verse",
+                        "type": "tag",
+                        "attrs": { "number": "5", "style": "v" },
+                        "items": [{ "text": "5", "type": "text" }]
+                    },
+                    {
+                        "text": "Verso cinco incididunt ut labore.",
+                        "type": "text",
+                        "attrs": {
+                            "verseId": "TST.1.5",
+                            "verseOrgIds": ["TST.1.5"]
+                        }
+                    }
+                ]
+            },
+            {
+                "name": "para",
+                "type": "tag",
+                "attrs": { "style": "p", "vid": "TST 1:5" },
+                "items": [
+                    {
+                        "text": "Continuacao verso cinco et dolore magna.",
+                        "type": "text",
+                        "attrs": {
+                            "verseId": "TST.1.5",
+                            "verseOrgIds": ["TST.1.5"]
+                        }
+                    }
+                ]
+            },
+            {
+                "name": "para",
+                "type": "tag",
+                "attrs": { "style": "q1" },
+                "items": [
+                    {
+                        "name": "verse",
+                        "type": "tag",
+                        "attrs": { "number": "6", "style": "v", "sid": "TST 1:6" },
+                        "items": [{ "text": "6", "type": "text" }]
+                    },
+                    {
+                        "text": "Verso seis primeira linha do paragrafo.",
+                        "type": "text",
+                        "attrs": {
+                            "verseId": "TST.1.6",
+                            "verseOrgIds": ["TST.1.6"]
+                        }
+                    }
+                ]
+            },
+            {
+                "name": "para",
+                "type": "tag",
+                "attrs": { "style": "q2" },
+                "items": [
+                    {
+                        "text": "Segunda linha com inline ",
+                        "type": "text",
+                        "attrs": {
+                            "verseId": "TST.1.6",
+                            "verseOrgIds": ["TST.1.6"]
+                        }
+                    },
+                    {
+                        "name": "char",
+                        "type": "tag",
+                        "attrs": { "style": "sc" },
+                        "items": [
+                            {
+                                "text": "Destaque",
+                                "type": "text",
+                                "attrs": {
+                                    "verseId": "TST.1.6",
+                                    "verseOrgIds": ["TST.1.6"]
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "text": " e fim do verso seis.",
+                        "type": "text",
+                        "attrs": {
+                            "verseId": "TST.1.6",
+                            "verseOrgIds": ["TST.1.6"]
+                        }
+                    }
+                ]
+            }
+        ]
+    }
+}
