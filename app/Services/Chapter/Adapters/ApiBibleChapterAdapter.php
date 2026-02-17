@@ -46,7 +46,7 @@ class ApiBibleChapterAdapter implements ChapterSourceAdapterInterface
 
         try {
             $response = Http::withHeaders(['api-key' => $key])
-                ->timeout(15)
+                ->timeout(5)
                 ->get($url, [
                     'content-type' => 'json',
                     'include-notes' => 'true',

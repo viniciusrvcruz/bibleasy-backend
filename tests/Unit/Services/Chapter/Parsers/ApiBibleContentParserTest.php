@@ -133,4 +133,77 @@ describe('ApiBibleContentParser', function () {
             ->and($v->references->first()->text)->toBe('Hebraico: em minhas mãos.')
             ->and($v->text)->toContain('perigo{{1}}, mas');
     });
+
+    it('parses real api.bible response structure from gen_response.json', function () {
+        $path = dirname(__DIR__, 5) . '/gen_response.json';
+        if (! is_file($path)) {
+            $this->markTestSkipped('gen_response.json not found');
+        }
+        $json = json_decode(file_get_contents($path), true);
+        $content = $json['data']['content'] ?? null;
+        if (! is_array($content)) {
+            $this->markTestSkipped('gen_response.json has no data.content');
+        }
+
+        $parser = app(ApiBibleContentParser::class);
+        $verses = $parser->parse($content, 'GEN', '1');
+
+        expect($verses)->toHaveCount(31);
+        $first = $verses->first();
+        expect($first->number)->toBe(1)
+            ->and($first->titles)->toHaveCount(1)
+            ->and($first->titles->first()->text)->toBe('O Princípio')
+            ->and($first->titles->first()->type)->toBe(VerseTitleTypeEnum::SECTION)
+            ->and($first->text)->toContain('No princípio Deus criou os céus e a terra')
+            ->and($first->references)->toHaveCount(1)
+            ->and($first->text)->toContain('{{1}}');
+        $last = $verses->last();
+        expect($last->number)->toBe(31);
+    });
+
+    it('parses real api.bible response structure from jhn.json', function () {
+        $path = dirname(__DIR__, 5) . '/jhn.json';
+        if (! is_file($path)) {
+            $this->markTestSkipped('jhn.json not found');
+        }
+        $json = json_decode(file_get_contents($path), true);
+        $content = $json['data']['content'] ?? null;
+        if (! is_array($content)) {
+            $this->markTestSkipped('jhn.json has no data.content');
+        }
+
+        $parser = app(ApiBibleContentParser::class);
+        $verses = $parser->parse($content, 'JHN', '1');
+
+        expect($verses)->toHaveCount(51);
+        $first = $verses->first();
+        expect($first->number)->toBe(1)
+            ->and($first->titles)->toHaveCount(1)
+            ->and($first->titles->first()->type)->toBe(VerseTitleTypeEnum::SECTION)
+            ->and($first->text)->toContain('Palavra');
+        $last = $verses->last();
+        expect($last->number)->toBe(51);
+    });
+
+    it('parses real api.bible response structure from psa.json', function () {
+        $path = dirname(__DIR__, 5) . '/psa.json';
+        if (! is_file($path)) {
+            $this->markTestSkipped('psa.json not found');
+        }
+        $json = json_decode(file_get_contents($path), true);
+        $content = $json['data']['content'] ?? null;
+        if (! is_array($content)) {
+            $this->markTestSkipped('psa.json has no data.content');
+        }
+
+        $parser = app(ApiBibleContentParser::class);
+        $verses = $parser->parse($content, 'PSA', '119');
+
+        expect($verses)->toHaveCount(176);
+        $first = $verses->first();
+        expect($first->number)->toBe(1)
+            ->and($first->text)->toContain('Como são felizes');
+        $last = $verses->last();
+        expect($last->number)->toBe(176);
+    });
 });
