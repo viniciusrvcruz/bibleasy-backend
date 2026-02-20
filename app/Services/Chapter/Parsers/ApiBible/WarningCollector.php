@@ -2,16 +2,12 @@
 
 namespace App\Services\Chapter\Parsers\ApiBible;
 
-use Psr\Log\LoggerInterface;
+use Illuminate\Support\Facades\Log;
 
 class WarningCollector
 {
     /** @var array<array{message: string, context: array<string, mixed>}> */
     private array $warnings = [];
-
-    public function __construct(
-        private readonly ?LoggerInterface $logger = null
-    ) {}
 
     public function add(string $message, array $context = []): void
     {
@@ -20,12 +16,8 @@ class WarningCollector
 
     public function flush(): void
     {
-        if ($this->logger === null) {
-            return;
-        }
-
         foreach ($this->warnings as $warning) {
-            $this->logger->warning($warning['message'], $warning['context']);
+            Log::warning($warning['message'], $warning['context']);
         }
 
         $this->warnings = [];

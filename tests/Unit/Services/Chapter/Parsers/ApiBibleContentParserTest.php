@@ -2,8 +2,13 @@
 
 use App\Enums\VerseTitleTypeEnum;
 use App\Services\Chapter\Parsers\ApiBibleContentParser;
+use Illuminate\Support\Facades\Log;
 
 describe('ApiBibleContentParser', function () {
+    beforeEach(function () {
+        Log::spy();
+    });
+
     it('extracts verses with section title and reference from cl', function () {
         $content = [
             [

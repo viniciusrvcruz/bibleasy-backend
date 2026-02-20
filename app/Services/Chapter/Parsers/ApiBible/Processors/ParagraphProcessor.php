@@ -53,12 +53,13 @@ class ParagraphProcessor
         }
 
         $isParagraphBreak = in_array($style, UsfmMarkers::PARAGRAPH_BREAK_MARKERS, true);
+
         $context = new ParsingContext(
-            $baseContext->bookId,
-            $baseContext->chapterNumber,
-            $isParagraphBreak,
-            false,
-            $style
+            bookId: $baseContext->bookId,
+            chapterNumber: $baseContext->chapterNumber,
+            isParagraphBreak: $isParagraphBreak,
+            isChapterLabel: false,
+            paragraphStyle: $style
         );
 
         $this->itemProcessor->processItems($items, $context);

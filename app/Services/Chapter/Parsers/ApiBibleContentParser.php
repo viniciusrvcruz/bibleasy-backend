@@ -9,8 +9,6 @@ use App\Services\Chapter\Parsers\ApiBible\TitleBuffer;
 use App\Services\Chapter\Parsers\ApiBible\ValueObjects\ParsingContext;
 use App\Services\Chapter\Parsers\ApiBible\WarningCollector;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\Log;
-use Psr\Log\LoggerInterface;
 
 /**
  * Parses api.bible chapter content array into verse DTOs.
@@ -18,19 +16,15 @@ use Psr\Log\LoggerInterface;
  */
 class ApiBibleContentParser
 {
-    private readonly WarningCollector $warnings;
-    private readonly TitleBuffer $titleBuffer;
-    private readonly VerseDTOBuilder $builder;
     private readonly ItemProcessor $itemProcessor;
     private readonly ParagraphProcessor $paragraphProcessor;
 
-    public function __construct(?LoggerInterface $logger = null)
+    public function __construct(
+        private readonly WarningCollector $warnings,
+        private readonly TitleBuffer $titleBuffer,
+        private readonly VerseDTOBuilder $builder
+    )
     {
-        $logger = $logger ?? (function_exists('app') && app()->bound('log') ? Log::getFacadeRoot() : null);
-
-        $this->warnings = new WarningCollector($logger);
-        $this->titleBuffer = new TitleBuffer();
-        $this->builder = new VerseDTOBuilder();
         $this->itemProcessor = new ItemProcessor($this->builder, $this->titleBuffer, $this->warnings);
         $this->paragraphProcessor = new ParagraphProcessor($this->titleBuffer, $this->itemProcessor, $this->warnings);
     }
