@@ -2,13 +2,8 @@
 
 use App\Enums\VerseTitleTypeEnum;
 use App\Services\Chapter\Parsers\ApiBibleContentParser;
-use Illuminate\Support\Facades\Log;
 
 describe('ApiBibleContentParser', function () {
-    beforeEach(function () {
-        Log::spy();
-    });
-
     it('extracts verses with section title and reference from cl', function () {
         $content = [
             [
@@ -140,7 +135,7 @@ describe('ApiBibleContentParser', function () {
     });
 
     it('parses unified api.bible fixture with all structure variants', function () {
-        $path = dirname(__DIR__, 4) . '/Fixtures/api_bible_chapter_content.json';
+        $path = dirname(__DIR__, 3) . '/Fixtures/api_bible_chapter_content.json';
         $json = json_decode(file_get_contents($path), true);
         $content = $json['data']['content'];
 

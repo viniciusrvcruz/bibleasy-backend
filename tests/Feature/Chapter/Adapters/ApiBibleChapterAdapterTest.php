@@ -1,7 +1,5 @@
 <?php
 
-uses(Tests\TestCase::class);
-
 use App\Enums\BookAbbreviationEnum;
 use App\Exceptions\Chapter\ChapterSourceException;
 use App\Models\Book;

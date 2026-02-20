@@ -1,7 +1,5 @@
 <?php
 
-uses(Tests\TestCase::class);
-
 use App\Actions\Chapter\GetChapterAction;
 use App\Enums\BookAbbreviationEnum;
 use App\Enums\VersionTextSourceEnum;

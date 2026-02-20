@@ -1,7 +1,5 @@
 <?php
 
-uses(Tests\TestCase::class);
-
 use App\Enums\VersionTextSourceEnum;
 use App\Models\Version;
 use App\Services\Chapter\Adapters\ApiBibleChapterAdapter;
