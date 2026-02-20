@@ -4,8 +4,8 @@ namespace App\Services\Chapter\Parsers\ApiBible\Processors;
 
 use App\Services\Chapter\DTOs\VerseReferenceResponseDTO;
 use App\Services\Chapter\Parsers\ApiBible\Builders\VerseDTOBuilder;
+use App\Services\Chapter\Parsers\ApiBible\Enums\ItemTypeEnum;
 use App\Services\Chapter\Parsers\ApiBible\TitleBuffer;
-use App\Services\Chapter\Parsers\ApiBible\ValueObjects\ItemType;
 use App\Services\Chapter\Parsers\ApiBible\ValueObjects\ParsingContext;
 use App\Services\Chapter\Parsers\ApiBible\WarningCollector;
 
@@ -32,14 +32,14 @@ class ItemProcessor
         $this->verseReceivedContentThisPara = [];
 
         foreach ($items as $item) {
-            $itemType = ItemType::from($item);
+            $itemType = ItemTypeEnum::fromItem($item);
 
             match ($itemType) {
-                ItemType::VERSE => $this->handleVerse($item, $context),
-                ItemType::TEXT => $this->handleText($item, $context),
-                ItemType::NOTE => $this->handleNote($item, $context),
-                ItemType::CHAR => $this->handleChar($item, $context),
-                ItemType::UNKNOWN => $this->handleUnknown($item, $context),
+                ItemTypeEnum::VERSE => $this->handleVerse($item, $context),
+                ItemTypeEnum::TEXT => $this->handleText($item, $context),
+                ItemTypeEnum::NOTE => $this->handleNote($item, $context),
+                ItemTypeEnum::CHAR => $this->handleChar($item, $context),
+                ItemTypeEnum::UNKNOWN => $this->handleUnknown($item, $context),
             };
         }
     }

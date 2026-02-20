@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Services\Chapter\Parsers\ApiBible\ValueObjects;
+namespace App\Services\Chapter\Parsers\ApiBible\Enums;
 
-enum ItemType
+enum ItemTypeEnum
 {
     case VERSE;
     case NOTE;
@@ -10,7 +10,7 @@ enum ItemType
     case TEXT;
     case UNKNOWN;
 
-    public static function from(array $item): self
+    public static function fromItem(array $item): self
     {
         $name = $item['name'] ?? '';
         $type = $item['type'] ?? '';
