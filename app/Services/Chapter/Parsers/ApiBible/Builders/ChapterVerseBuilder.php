@@ -34,7 +34,7 @@ class ChapterVerseBuilder
         return collect($this->verses)
             ->map(fn(VerseBuilder $data, int $number) => new VerseResponseDTO(
                 number: $number,
-                text: trim($data->getFullText()),
+                text: rtrim($data->getFullText(), " \t"),
                 titles: collect($data->titles),
                 references: collect($data->references)
             ))

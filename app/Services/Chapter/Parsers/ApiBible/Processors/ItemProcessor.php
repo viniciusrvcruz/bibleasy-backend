@@ -12,7 +12,7 @@ use App\Services\Chapter\Parsers\ApiBible\WarningCollector;
 class ItemProcessor
 {
     private const NOTE_STYLES = ['f', 'fe', 'x', 'ef', 'ex'];
-    private const NOTE_CONTENT_STYLES = ['ft', 'fqa', 'xt'];
+    private const NOTE_CONTENT_STYLES = ['ft', 'fqa', 'xt', 'fr', 'fq'];
     private const PLACEHOLDER_FORMAT = '{{%s}}';
     private const LOG_TRUNCATE_LENGTH = 50;
 
@@ -21,11 +21,30 @@ class ItemProcessor
     /** @var array<int, bool> */
     private array $verseReceivedContentThisPara = [];
 
+    private bool $isFirstTextInParagraph = false;
+    private ?int $lastVerseInParagraph = null;
+
     public function __construct(
         private readonly ChapterVerseBuilder $builder,
         private readonly TitleBuffer $titleBuffer,
         private readonly WarningCollector $warnings
     ) {}
+
+    public function addParagraphStart(): void
+    {
+        $this->isFirstTextInParagraph = true;
+    }
+
+    public function addParagraphEnd(): void
+    {
+        if ($this->lastVerseInParagraph !== null) {
+            $verseData = $this->builder->getOrCreate($this->lastVerseInParagraph);
+            if (!str_ends_with($verseData->getFullText(), "\n")) {
+                $verseData->appendText("\n");
+            }
+            $this->lastVerseInParagraph = null;
+        }
+    }
 
     public function processItems(array $items, ParsingContext $context): void
     {
@@ -51,12 +70,13 @@ class ItemProcessor
             if (($item['type'] ?? '') === 'text') {
                 $parts[] = $item['text'] ?? '';
             }
-            if (($item['name'] ?? '') === 'char' && ($item['type'] ?? '') === 'tag') {
+            $name = $item['name'] ?? '';
+            if (($name === 'char' || $name === 'ref') && ($item['type'] ?? '') === 'tag') {
                 $parts[] = $this->extractTextFromItems($item['items'] ?? []);
             }
         }
 
-        return trim(implode('', $parts));
+        return implode('', $parts);
     }
 
     private function handleVerse(array $item, ParsingContext $context): void
@@ -106,9 +126,16 @@ class ItemProcessor
 
         $verseData = $this->builder->getOrCreate($verseNumber);
         $this->maybePrependParagraphBreak($verseData, $verseNumber, $context);
+        
+        if ($this->isFirstTextInParagraph && $verseData->hasContent() && !str_ends_with($verseData->getFullText(), "\n")) {
+            $verseData->appendText("\n");
+            $this->isFirstTextInParagraph = false;
+        }
+        
         $this->verseReceivedContentThisPara[$verseNumber] = true;
         $verseData->appendText($text);
         $this->currentVerseNumber = $verseNumber;
+        $this->lastVerseInParagraph = $verseNumber;
     }
 
     private function handleNote(array $item, ParsingContext $context): void
@@ -139,6 +166,8 @@ class ItemProcessor
             $verseData->appendRefPrefix($placeholder);
         } else {
             $verseData->appendText($placeholder);
+            $this->isFirstTextInParagraph = false;
+            $this->lastVerseInParagraph = $verseNumber;
         }
     }
 
@@ -152,6 +181,7 @@ class ItemProcessor
             $text = $this->extractTextFromItems($item['items'] ?? []);
             if ($text !== '') {
                 $verseData->appendText($text);
+                $this->lastVerseInParagraph = $this->currentVerseNumber;
             }
             return;
         }
@@ -192,7 +222,7 @@ class ItemProcessor
 
     private function extractNoteText(array $noteItems, ParsingContext $context): string
     {
-        $parts = [];
+        $result = '';
         foreach ($noteItems as $item) {
             if (($item['name'] ?? '') !== 'char' || ($item['type'] ?? '') !== 'tag') {
                 continue;
@@ -202,7 +232,7 @@ class ItemProcessor
             $text = $this->extractTextFromItems($item['items'] ?? []);
 
             if (in_array($style, self::NOTE_CONTENT_STYLES, true)) {
-                $parts[] = $text;
+                $result .= $text;
             } elseif ($text !== '') {
                 $this->warnings->add('ApiBibleContentParser: note char style not used for reference text (add to NOTE_CONTENT_STYLES if needed).', [
                     'context' => $context->getContextKey(),
@@ -212,7 +242,7 @@ class ItemProcessor
             }
         }
 
-        return trim(implode(' ', $parts));
+        return trim($result);
     }
 
     private function parseVerseNumber(string $verseId, ParsingContext $context): ?int
@@ -236,7 +266,9 @@ class ItemProcessor
             return;
         }
 
-        $verseData->appendText("\n");
+        if (!str_ends_with($verseData->getFullText(), "\n")) {
+            $verseData->appendText("\n");
+        }
     }
 
     private function warnSkippedText(string $text, ParsingContext $context): void

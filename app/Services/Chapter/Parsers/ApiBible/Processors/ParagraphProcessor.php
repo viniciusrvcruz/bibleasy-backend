@@ -12,7 +12,7 @@ use App\Services\Version\Adapters\Usfm\UsfmMarkers;
 class ParagraphProcessor
 {
     private const CHAPTER_LABEL_STYLE = 'cl';
-    private const SECTION_TITLE_STYLES = ['d', 's', 's1', 's2', 's3', 'qa'];
+    private const SECTION_TITLE_STYLES = ['d', 's', 's1', 's2', 's3', 'qa', 'ms', 'ms1', 'ms2', 'ms3'];
     private const REFERENCE_TITLE_STYLES = ['r', 'mr'];
 
     public function __construct(
@@ -62,7 +62,9 @@ class ParagraphProcessor
             paragraphStyle: $style
         );
 
+        $this->itemProcessor->addParagraphStart();
         $this->itemProcessor->processItems($items, $context);
+        $this->itemProcessor->addParagraphEnd();
     }
 
     private function isParagraphTag(array $para): bool
