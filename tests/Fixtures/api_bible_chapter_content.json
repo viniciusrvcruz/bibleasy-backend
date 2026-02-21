@@ -47,7 +47,23 @@
                 "name": "para",
                 "type": "tag",
                 "attrs": { "style": "s1" },
-                "items": [{ "text": "Titulo secao fixture", "type": "text" }]
+                "items": [
+                    { "text": "Titulo secao ", "type": "text" },
+                    {
+                        "name": "note",
+                        "type": "tag",
+                        "attrs": { "caller": "+", "style": "f", "verseId": "TST.1.1" },
+                        "items": [
+                            {
+                                "name": "char",
+                                "type": "tag",
+                                "attrs": { "style": "ft", "closed": "false" },
+                                "items": [{ "text": "Nota dentro do titulo de secao.", "type": "text" }]
+                            }
+                        ]
+                    },
+                    { "text": " fixture", "type": "text" }
+                ]
             },
             {
                 "name": "para",
@@ -143,6 +159,12 @@
                         ]
                     }
                 ]
+            },
+            {
+                "name": "para",
+                "type": "tag",
+                "attrs": { "style": "b" },
+                "items": []
             },
             {
                 "name": "para",

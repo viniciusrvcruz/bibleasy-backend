@@ -46,6 +46,17 @@ class ItemProcessor
         }
     }
 
+    /**
+     * Appends a newline to the last verse that has content (e.g. for blank paragraph style "b").
+     */
+    public function addBlankLine(): void
+    {
+        $verseNumber = $this->builder->getLastVerseNumberWithContent();
+        if ($verseNumber !== null) {
+            $this->builder->getOrCreate($verseNumber)->appendText("\n");
+        }
+    }
+
     public function processItems(array $items, ParsingContext $context): void
     {
         $this->verseReceivedContentThisPara = [];
@@ -79,6 +90,60 @@ class ItemProcessor
         return implode('', $parts);
     }
 
+    /**
+     * Builds section/reference title text from items, processing notes as placeholders (e.g. {{1}})
+     * and adding the note content as references to the verse indicated by the note's verseId.
+     */
+    public function buildTitleTextWithNotePlaceholders(array $items, ParsingContext $context): string
+    {
+        $result = '';
+        foreach ($items as $item) {
+            $itemType = ItemTypeEnum::fromItem($item);
+            if ($itemType === ItemTypeEnum::TEXT) {
+                $result .= $item['text'] ?? '';
+                continue;
+            }
+            if ($itemType === ItemTypeEnum::NOTE) {
+                $placeholder = $this->processNoteForTitle($item, $context);
+                $result .= $placeholder ?? '';
+                continue;
+            }
+            $result .= $this->extractTextFromItems([$item]);
+        }
+
+        return $result;
+    }
+
+    /**
+     * Processes a note item inside a title paragraph: adds the reference to the verse from note's verseId,
+     * returns the placeholder string (e.g. "{{1}}") to be inserted in the title text.
+     */
+    public function processNoteForTitle(array $noteItem, ParsingContext $context): ?string
+    {
+        $verseId = $noteItem['attrs']['verseId'] ?? null;
+        $noteStyle = $noteItem['attrs']['style'] ?? '';
+
+        if (!in_array($noteStyle, self::NOTE_STYLES, true) || $verseId === null) {
+            return null;
+        }
+
+        $verseNumber = $this->parseVerseNumber($verseId, $context);
+        if ($verseNumber === null) {
+            return null;
+        }
+
+        $noteText = $this->extractNoteText($noteItem['items'] ?? [], $context);
+        if ($noteText === '') {
+            return null;
+        }
+
+        $verseData = $this->builder->getOrCreate($verseNumber);
+        $slug = $verseData->nextSlug();
+        $verseData->addReference(new VerseReferenceResponseDTO($slug, $noteText));
+
+        return sprintf(self::PLACEHOLDER_FORMAT, $slug);
+    }
+
     private function handleVerse(array $item, ParsingContext $context): void
     {
         $rawNumber = $item['attrs']['number'] ?? null;
@@ -108,7 +173,12 @@ class ItemProcessor
         $verseId = $item['attrs']['verseId'] ?? null;
         $text = $item['text'] ?? '';
 
-        if ($verseId === null || $text === '' || $context->isChapterLabel) {
+        if ($context->isChapterLabel) {
+            // Chapter label text is intentionally not added to verse content; do not warn.
+            return;
+        }
+
+        if ($verseId === null || $text === '') {
             $this->warnSkippedText($text, $context);
             return;
         }
@@ -126,12 +196,14 @@ class ItemProcessor
 
         $verseData = $this->builder->getOrCreate($verseNumber);
         $this->maybePrependParagraphBreak($verseData, $verseNumber, $context);
-        
+
+        // Only add newline before this segment when it's the first text in this paragraph
+        // and the verse already has content from a previous paragraph (without trailing newline).
         if ($this->isFirstTextInParagraph && $verseData->hasContent() && !str_ends_with($verseData->getFullText(), "\n")) {
             $verseData->appendText("\n");
-            $this->isFirstTextInParagraph = false;
         }
-        
+        $this->isFirstTextInParagraph = false;
+
         $this->verseReceivedContentThisPara[$verseNumber] = true;
         $verseData->appendText($text);
         $this->currentVerseNumber = $verseNumber;

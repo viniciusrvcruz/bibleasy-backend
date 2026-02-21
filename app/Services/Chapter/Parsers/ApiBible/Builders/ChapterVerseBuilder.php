@@ -25,6 +25,22 @@ class ChapterVerseBuilder
     }
 
     /**
+     * Returns the last (highest) verse number that has content, or null if none.
+     */
+    public function getLastVerseNumberWithContent(): ?int
+    {
+        $numbers = array_keys($this->verses);
+        if ($numbers === []) {
+            return null;
+        }
+
+        $max = max($numbers);
+        $verse = $this->verses[$max];
+
+        return $verse->hasContent() ? $max : null;
+    }
+
+    /**
      * @return Collection<int, VerseResponseDTO>
      */
     public function build(): Collection
