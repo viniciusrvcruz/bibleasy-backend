@@ -14,7 +14,7 @@ class ItemProcessor
     private const NOTE_STYLES = ['f', 'fe', 'x', 'ef', 'ex'];
     private const NOTE_CONTENT_STYLES = ['ft', 'fqa', 'xt'];
     private const PLACEHOLDER_FORMAT = '{{%s}}';
-    private const LOG_TRUNCATE_LENGTH = 80;
+    private const LOG_TRUNCATE_LENGTH = 50;
 
     private ?int $currentVerseNumber = null;
 
