@@ -1,11 +1,11 @@
 <?php
 
-namespace App\Services\Chapter\Parsers\ApiBible\ValueObjects;
+namespace App\Services\Chapter\Parsers\ApiBible\Builders;
 
 use App\Services\Chapter\DTOs\VerseReferenceResponseDTO;
 use App\Services\Chapter\DTOs\VerseTitleDTO;
 
-class VerseData
+class VerseBuilder
 {
     /** @var array<VerseTitleDTO> */
     public array $titles = [];

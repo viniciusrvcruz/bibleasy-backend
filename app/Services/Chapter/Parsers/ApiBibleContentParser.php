@@ -2,7 +2,7 @@
 
 namespace App\Services\Chapter\Parsers;
 
-use App\Services\Chapter\Parsers\ApiBible\Builders\VerseDTOBuilder;
+use App\Services\Chapter\Parsers\ApiBible\Builders\ChapterVerseBuilder;
 use App\Services\Chapter\Parsers\ApiBible\Processors\ItemProcessor;
 use App\Services\Chapter\Parsers\ApiBible\Processors\ParagraphProcessor;
 use App\Services\Chapter\Parsers\ApiBible\TitleBuffer;
@@ -22,7 +22,7 @@ class ApiBibleContentParser
     public function __construct(
         private readonly WarningCollector $warnings,
         private readonly TitleBuffer $titleBuffer,
-        private readonly VerseDTOBuilder $builder
+        private readonly ChapterVerseBuilder $builder
     )
     {
         $this->itemProcessor = new ItemProcessor($this->builder, $this->titleBuffer, $this->warnings);

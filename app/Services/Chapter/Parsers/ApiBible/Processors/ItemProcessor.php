@@ -3,7 +3,7 @@
 namespace App\Services\Chapter\Parsers\ApiBible\Processors;
 
 use App\Services\Chapter\DTOs\VerseReferenceResponseDTO;
-use App\Services\Chapter\Parsers\ApiBible\Builders\VerseDTOBuilder;
+use App\Services\Chapter\Parsers\ApiBible\Builders\ChapterVerseBuilder;
 use App\Services\Chapter\Parsers\ApiBible\Enums\ItemTypeEnum;
 use App\Services\Chapter\Parsers\ApiBible\TitleBuffer;
 use App\Services\Chapter\Parsers\ApiBible\ValueObjects\ParsingContext;
@@ -22,7 +22,7 @@ class ItemProcessor
     private array $verseReceivedContentThisPara = [];
 
     public function __construct(
-        private readonly VerseDTOBuilder $builder,
+        private readonly ChapterVerseBuilder $builder,
         private readonly TitleBuffer $titleBuffer,
         private readonly WarningCollector $warnings
     ) {}
