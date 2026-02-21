@@ -12,7 +12,7 @@ use App\Services\Chapter\Parsers\ApiBible\WarningCollector;
 class ItemProcessor
 {
     private const NOTE_STYLES = ['f', 'fe', 'x', 'ef', 'ex'];
-    private const NOTE_CONTENT_STYLES = ['ft', 'fqa', 'xt', 'fr', 'fq'];
+    private const NOTE_CONTENT_STYLES = ['ft', 'fqa', 'xt', 'fr', 'fq', 'fv'];
     private const PLACEHOLDER_FORMAT = '{{%s}}';
     private const LOG_TRUNCATE_LENGTH = 50;
 
@@ -254,6 +254,8 @@ class ItemProcessor
             if ($text !== '') {
                 $verseData->appendText($text);
                 $this->lastVerseInParagraph = $this->currentVerseNumber;
+                // So the next item (e.g. text) in the same paragraph is not treated as "first" and won't get an extra \n.
+                $this->isFirstTextInParagraph = false;
             }
             return;
         }
