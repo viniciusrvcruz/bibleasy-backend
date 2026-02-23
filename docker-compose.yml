@@ -1,12 +1,14 @@
 services:
   bible_api:
     container_name: bible_api
-    build: ./docker/php
-    command: [ "bash", "/app/docker/php/start.sh" ]
+    build:
+      context: .
+      dockerfile: docker/php/Dockerfile
+      target: development
     ports:
-      - 80:80
+      - 8080:8080
     volumes:
-      - ./:/app
+      - ./:/var/www/html
     depends_on:
       bible_postgresql:
         condition: service_healthy
