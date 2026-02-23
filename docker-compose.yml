@@ -13,6 +13,9 @@ services:
       bible_postgresql:
         condition: service_healthy
         restart: true
+      bible_redis:
+        condition: service_healthy
+        restart: true
     networks:
       - bible_network
 
@@ -35,9 +38,25 @@ services:
       timeout: 10s
     networks:
       - bible_network
+  bible_redis:
+    container_name: bible_redis
+    image: redis:latest
+    volumes:
+      - bible_redis_data:/data
+    ports:
+      - 6379:6379
+    networks:
+      - bible_network
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli PING"]
+      interval: 10s
+      retries: 5
+      start_period: 30s
+      timeout: 10s
 
 volumes:
   bible_postgres_data:
+  bible_redis_data:
 
 networks:
   bible_network:
