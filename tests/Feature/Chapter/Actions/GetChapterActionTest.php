@@ -59,7 +59,7 @@ describe('GetChapterAction', function () {
         ]);
         Chapter::factory()->create(['number' => 119, 'book_id' => $book->id]);
 
-        $key = "bible:{$version->id}:psa:119";
+        $key = "versions:{$version->id}:books:psa:chapters:119";
         Cache::forget($key);
         expect(Cache::has($key))->toBeFalse();
 

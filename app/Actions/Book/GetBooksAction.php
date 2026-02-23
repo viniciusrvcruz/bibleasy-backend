@@ -13,7 +13,7 @@ class GetBooksAction
      */
     public function execute(Version $version): Collection
     {
-        $cacheKey = "bible:{$version->abbreviation}:books";
+        $cacheKey = "versions:{$version->id}:books";
 
         $ttl = $version->cache_ttl
             ? now()->addSeconds($version->cache_ttl)

@@ -34,7 +34,7 @@ abstract class AbstractCachedChapterAdapter implements ChapterSourceAdapterInter
 
     protected function buildCacheKey(Version $version, BookAbbreviationEnum $abbreviation, int $number): string
     {
-        return "bible:{$version->id}:{$abbreviation->value}:{$number}";
+        return "versions:{$version->id}:books:{$abbreviation->value}:chapters:{$number}";
     }
 
     /**

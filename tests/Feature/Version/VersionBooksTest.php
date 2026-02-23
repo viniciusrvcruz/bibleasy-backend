@@ -5,6 +5,7 @@ use App\Models\Book;
 use App\Models\Chapter;
 use App\Models\Verse;
 use App\Models\Version;
+use Illuminate\Support\Facades\Cache;
 
 describe('Version Books', function () {
     it('returns all books of a version with chapters and verses_count', function () {
@@ -87,14 +88,14 @@ describe('Version Books', function () {
             'order' => 3,
         ]);
         
-        $book1 = Book::factory()->create([
+        Book::factory()->create([
             'version_id' => $version->id,
             'abbreviation' => BookAbbreviationEnum::GEN,
             'name' => BookAbbreviationEnum::GEN->value,
             'order' => 1,
         ]);
         
-        $book2 = Book::factory()->create([
+        Book::factory()->create([
             'version_id' => $version->id,
             'abbreviation' => BookAbbreviationEnum::EXO,
             'name' => BookAbbreviationEnum::EXO->value,
@@ -186,7 +187,7 @@ describe('Version Books', function () {
             'version_id' => $version->id,
         ]);
         
-        $chapter = Chapter::factory()->create([
+        Chapter::factory()->create([
             'number' => 1,
             'book_id' => $book->id,
         ]);
@@ -199,7 +200,7 @@ describe('Version Books', function () {
 
     it('returns books with empty chapters array when book has no chapters', function () {
         $version = Version::factory()->create();
-        $book = Book::factory()->create([
+        Book::factory()->create([
             'version_id' => $version->id,
         ]);
 
@@ -209,5 +210,21 @@ describe('Version Books', function () {
         $response->assertJsonCount(1);
         $response->assertJsonPath('0.chapters', []);
     });
+
+    it('caches books response', function () {
+        $version = Version::factory()->create(['cache_ttl' => 3600]);
+        $book = Book::factory()->create(['version_id' => $version->id]);
+        Chapter::factory()->create(['book_id' => $book->id, 'number' => 1]);
+
+        $key = "versions:{$version->id}:books";
+
+        Cache::forget($key);
+        expect(Cache::has($key))->toBeFalse();
+
+        $this->getJson("/api/versions/{$version->id}/books")->assertStatus(200);
+
+        expect(Cache::has($key))->toBeTrue();
+    });
 });
+
 

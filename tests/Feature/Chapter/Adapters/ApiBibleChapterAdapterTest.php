@@ -65,7 +65,7 @@ describe('ApiBibleChapterAdapter', function () {
             ], 200),
         ]);
 
-        config(['services.api_bible.key' => 'test-key', 'services.api_bible.base_url' => 'https://api.scripture.api.bible/v1']);
+        config(['services.api_bible.key' => 'test-key', 'services.api_bible.base_url' => 'https://rest.api.bible/v1']);
 
         $adapter = app(ApiBibleChapterAdapter::class);
         $dto = $adapter->getChapter($version, BookAbbreviationEnum::PSA, 119);
@@ -74,7 +74,7 @@ describe('ApiBibleChapterAdapter', function () {
             ->and($dto->number)->toBe(119)
             ->and($dto->bookName)->toBe('Salmos')
             ->and($dto->verses)->toHaveCount(1)
-            ->and($dto->verses->first()->text)->toBe('Verse text');
+            ->and($dto->verses->first()->text)->toBe("Verse text\n");
     });
 
     it('throws external_api_error when API request fails', function () {
