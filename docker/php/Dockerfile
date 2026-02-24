@@ -25,6 +25,7 @@ RUN chmod +x /usr/local/bin/entrypoint-dev.sh
 # Serversideup/php Laravel automations
 ENV PHP_OPCACHE_ENABLE=true \
     AUTORUN_ENABLED=true \
+    AUTORUN_LARAVEL_CONFIG_CACHE=false \
     AUTORUN_LARAVEL_MIGRATION=true \
     AUTORUN_LARAVEL_MIGRATION_FORCE=true \
     AUTORUN_LARAVEL_STORAGE_LINK=true
