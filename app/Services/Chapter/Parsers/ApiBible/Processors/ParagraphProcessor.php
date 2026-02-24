@@ -25,6 +25,13 @@ class ParagraphProcessor
     public function process(array $paragraph, ParsingContext $baseContext): void
     {
         if (!$this->isParagraphTag($paragraph)) {
+            $name = $paragraph['name'] ?? '(no name)';
+            $type = $paragraph['type'] ?? '(no type)';
+            $this->warnings->add('ApiBibleContentParser: non-para content skipped (content may be lost).', [
+                'context' => $baseContext->getContextKey(),
+                'item_name' => $name,
+                'item_type' => $type,
+            ]);
             return;
         }
 

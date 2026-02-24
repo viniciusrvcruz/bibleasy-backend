@@ -8,6 +8,8 @@ use App\Services\Chapter\Parsers\ApiBible\Enums\ItemTypeEnum;
 use App\Services\Chapter\Parsers\ApiBible\TitleBuffer;
 use App\Services\Chapter\Parsers\ApiBible\ValueObjects\ParsingContext;
 use App\Services\Chapter\Parsers\ApiBible\WarningCollector;
+use App\Enums\VerseTitlePositionEnum;
+use App\Services\Chapter\DTOs\VerseTitleDTO;
 
 class ItemProcessor
 {
@@ -124,16 +126,30 @@ class ItemProcessor
         $noteStyle = $noteItem['attrs']['style'] ?? '';
 
         if (!in_array($noteStyle, self::NOTE_STYLES, true) || $verseId === null) {
+            $this->warnings->add('ApiBibleContentParser: note in title skipped (unknown style or missing verseId).', [
+                'context' => $context->getContextKey(),
+                'note_style' => $noteStyle,
+                'verse_id' => $verseId,
+            ]);
             return null;
         }
 
         $verseNumber = $this->parseVerseNumber($verseId, $context);
         if ($verseNumber === null) {
+            $this->warnings->add('ApiBibleContentParser: note in title skipped (verseId does not match chapter).', [
+                'context' => $context->getContextKey(),
+                'verse_id' => $verseId,
+            ]);
             return null;
         }
 
         $noteText = $this->extractNoteText($noteItem['items'] ?? [], $context);
         if ($noteText === '') {
+            $this->warnings->add('ApiBibleContentParser: note in title skipped (empty note content).', [
+                'context' => $context->getContextKey(),
+                'verse_id' => $verseId,
+                'note_style' => $noteStyle,
+            ]);
             return null;
         }
 
@@ -142,6 +158,17 @@ class ItemProcessor
         $verseData->addReference(new VerseReferenceResponseDTO($slug, $noteText));
 
         return sprintf(self::PLACEHOLDER_FORMAT, $slug);
+    }
+
+    /**
+     * Adds titles to the given verse with the specified position (start or end of verse).
+     */
+    public function addTitlesToVerse(array $titles, int $verseNumber, VerseTitlePositionEnum $position): void
+    {
+        $verseData = $this->builder->getOrCreate($verseNumber);
+        foreach ($titles as $title) {
+            $verseData->addTitle(new VerseTitleDTO($title->text, $title->type, $position));
+        }
     }
 
     private function handleVerse(array $item, ParsingContext $context): void
@@ -159,10 +186,15 @@ class ItemProcessor
             return;
         }
 
-        $verseData = $this->builder->getOrCreate($verseNumber);
-
-        foreach ($this->titleBuffer->flush() as $title) {
-            $verseData->addTitle($title);
+        $flushedTitles = $this->titleBuffer->flush();
+        if ($flushedTitles !== []) {
+            // Titles that appear before the first verse go to current verse as start; titles that appear
+            // after a verse go to the previous verse as end.
+            if ($this->currentVerseNumber !== null) {
+                $this->addTitlesToVerse($flushedTitles, $this->currentVerseNumber, VerseTitlePositionEnum::END);
+            } else {
+                $this->addTitlesToVerse($flushedTitles, $verseNumber, VerseTitlePositionEnum::START);
+            }
         }
 
         $this->currentVerseNumber = $verseNumber;
@@ -216,16 +248,34 @@ class ItemProcessor
         $noteStyle = $item['attrs']['style'] ?? '';
 
         if (!in_array($noteStyle, self::NOTE_STYLES, true) || $verseId === null) {
+            $this->warnings->add('ApiBibleContentParser: note skipped (unknown style or missing verseId).', [
+                'context' => $context->getContextKey(),
+                'paragraph_style' => $context->paragraphStyle,
+                'note_style' => $noteStyle,
+                'verse_id' => $verseId,
+            ]);
             return;
         }
 
         $verseNumber = $this->parseVerseNumber($verseId, $context);
         if ($verseNumber === null) {
+            $this->warnings->add('ApiBibleContentParser: note skipped (verseId does not match chapter).', [
+                'context' => $context->getContextKey(),
+                'paragraph_style' => $context->paragraphStyle,
+                'verse_id' => $verseId,
+            ]);
             return;
         }
 
         $noteText = $this->extractNoteText($item['items'] ?? [], $context);
         if ($noteText === '') {
+            $this->warnings->add('ApiBibleContentParser: note skipped (empty note content).', [
+                'context' => $context->getContextKey(),
+                'paragraph_style' => $context->paragraphStyle,
+                'verse_id' => $verseId,
+                'verse_number' => $verseNumber,
+                'note_style' => $noteStyle,
+            ]);
             return;
         }
 
@@ -280,8 +330,17 @@ class ItemProcessor
         $itemName = $item['name'] ?? '(no name)';
         $itemType = $item['type'] ?? '(no type)';
         $hasNestedItems = !empty($item['items']) && is_array($item['items']);
+        $hasText = trim((string) ($item['text'] ?? '')) !== '';
 
         if ($itemType !== 'tag' && !$hasNestedItems) {
+            if ($hasText) {
+                $this->warnings->add('ApiBibleContentParser: unhandled text item skipped (content may be lost).', [
+                    'context' => $context->getContextKey(),
+                    'paragraph_style' => $context->paragraphStyle,
+                    'item_name' => $itemName,
+                    'text_snippet' => $this->truncate($item['text'] ?? ''),
+                ]);
+            }
             return;
         }
 
@@ -298,20 +357,31 @@ class ItemProcessor
     {
         $result = '';
         foreach ($noteItems as $item) {
-            if (($item['name'] ?? '') !== 'char' || ($item['type'] ?? '') !== 'tag') {
+            if (($item['name'] ?? '') === 'char' && ($item['type'] ?? '') === 'tag') {
+                $style = $item['attrs']['style'] ?? '';
+                $text = $this->extractTextFromItems($item['items'] ?? []);
+
+                if (in_array($style, self::NOTE_CONTENT_STYLES, true)) {
+                    $result .= $text;
+                } elseif ($text !== '') {
+                    $this->warnings->add('ApiBibleContentParser: note char style not used for reference text (add to NOTE_CONTENT_STYLES if needed).', [
+                        'context' => $context->getContextKey(),
+                        'char_style' => $style,
+                        'text_snippet' => $this->truncate($text),
+                    ]);
+                }
                 continue;
             }
 
-            $style = $item['attrs']['style'] ?? '';
-            $text = $this->extractTextFromItems($item['items'] ?? []);
-
-            if (in_array($style, self::NOTE_CONTENT_STYLES, true)) {
-                $result .= $text;
-            } elseif ($text !== '') {
-                $this->warnings->add('ApiBibleContentParser: note char style not used for reference text (add to NOTE_CONTENT_STYLES if needed).', [
+            $skippedText = ($item['type'] ?? '') === 'text'
+                ? trim((string) ($item['text'] ?? ''))
+                : $this->extractTextFromItems($item['items'] ?? []);
+            if ($skippedText !== '') {
+                $this->warnings->add('ApiBibleContentParser: note content skipped (not a char tag; add handling if needed).', [
                     'context' => $context->getContextKey(),
-                    'char_style' => $style,
-                    'text_snippet' => $this->truncate($text),
+                    'item_name' => $item['name'] ?? '(no name)',
+                    'item_type' => $item['type'] ?? '(no type)',
+                    'text_snippet' => $this->truncate($skippedText),
                 ]);
             }
         }

@@ -163,6 +163,45 @@
             {
                 "name": "para",
                 "type": "tag",
+                "attrs": { "style": "qa" },
+                "items": [
+                    {
+                        "text": "Interlúdio",
+                        "type": "text",
+                        "attrs": {
+                            "verseId": "TST.1.2",
+                            "verseOrgIds": ["TST.1.3"]
+                        }
+                    },
+                    {
+                        "name": "note",
+                        "type": "tag",
+                        "attrs": {
+                            "caller": "-",
+                            "style": "f",
+                            "id": "TST.1.2!f.1",
+                            "verseId": "TST.1.2"
+                        },
+                        "items": [
+                            {
+                                "name": "char",
+                                "type": "tag",
+                                "attrs": { "style": "fr", "closed": "false" },
+                                "items": [{ "text": "1.2 ", "type": "text" }]
+                            },
+                            {
+                                "name": "char",
+                                "type": "tag",
+                                "attrs": { "style": "ft", "closed": "false" },
+                                "items": [{ "text": "Selá. Termo musical ou literário; traduzido como Interlúdio no livro de Salmos.", "type": "text" }]
+                            }
+                        ]
+                    }
+                ]
+            },
+            {
+                "name": "para",
+                "type": "tag",
                 "attrs": { "style": "b" },
                 "items": []
             },
@@ -285,6 +324,21 @@
                         "attrs": {
                             "verseId": "TST.1.6",
                             "verseOrgIds": ["TST.1.6"]
+                        }
+                    }
+                ]
+            },
+            {
+                "name": "para",
+                "type": "tag",
+                "attrs": { "style": "qa" },
+                "items": [
+                    {
+                        "text": "Interlúdio",
+                        "type": "text",
+                        "attrs": {
+                            "verseId": "TST.1.6",
+                            "verseOrgIds": ["TST.1.7"]
                         }
                     }
                 ]

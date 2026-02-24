@@ -1,5 +1,6 @@
 <?php
 
+use App\Enums\VerseTitlePositionEnum;
 use App\Enums\VerseTitleTypeEnum;
 use App\Services\Chapter\Parsers\ApiBibleContentParser;
 
@@ -61,6 +62,7 @@ describe('ApiBibleContentParser', function () {
             ->and($v1->titles)->toHaveCount(1)
             ->and($v1->titles->first()->text)->toBe('Álef')
             ->and($v1->titles->first()->type)->toBe(VerseTitleTypeEnum::SECTION)
+            ->and($v1->titles->first()->position)->toBe(VerseTitlePositionEnum::START)
             ->and($v1->references)->toHaveCount(1)
             ->and($v1->references->first()->slug)->toBe('1')
             ->and($v1->references->first()->text)->toContain('poema organizado')
@@ -141,6 +143,7 @@ describe('ApiBibleContentParser', function () {
             ->and($v1->titles)->toHaveCount(1)
             ->and($v1->titles->first()->text)->toBe('Cântico {{1}} de peregrinação.')
             ->and($v1->titles->first()->type)->toBe(VerseTitleTypeEnum::SECTION)
+            ->and($v1->titles->first()->position)->toBe(VerseTitlePositionEnum::START)
             ->and($v1->references)->toHaveCount(1)
             ->and($v1->references->first()->slug)->toBe('1')
             ->and($v1->references->first()->text)->toBe('Ou dos Degraus; também nos Sal 121.1 a Sal 134.1.')
@@ -233,14 +236,16 @@ describe('ApiBibleContentParser', function () {
 
         expect($verses)->toHaveCount(6);
 
-        // Verse 1: section title (s1) with note placeholder, reference title (r), chapter-label note (ref_prefix), text, inline footnote
+        // Verse 1: section title (s1) with note placeholder, reference title (r), chapter-label note (ref_prefix), text, inline footnote; titles before first verse have position start
         $v1 = $verses->get(0);
         expect($v1->number)->toBe(1)
             ->and($v1->titles)->toHaveCount(2)
             ->and($v1->titles->get(0)->text)->toBe('Titulo secao {{2}} fixture')
             ->and($v1->titles->get(0)->type)->toBe(VerseTitleTypeEnum::SECTION)
+            ->and($v1->titles->get(0)->position)->toBe(VerseTitlePositionEnum::START)
             ->and($v1->titles->get(1)->text)->toBe('Titulo referencia fixture')
             ->and($v1->titles->get(1)->type)->toBe(VerseTitleTypeEnum::REFERENCE)
+            ->and($v1->titles->get(1)->position)->toBe(VerseTitlePositionEnum::START)
             ->and($v1->text)->toStartWith('{{1}}')
             ->and($v1->text)->toContain('Texto verso um corpo principal')
             ->and($v1->text)->toContain('{{3}}')
@@ -252,14 +257,20 @@ describe('ApiBibleContentParser', function () {
             ->and($v1->references->get(2)->slug)->toBe('3')
             ->and($v1->references->get(2)->text)->toContain('Variante alternativa sintetica');
 
-        // Verse 2: text + cross-reference note (style x); blank para (b) after adds extra newline
+        // Verse 2: text + cross-reference note (style x); qa "Interlúdio" + note after verse -> title on verse 2 with position end; blank para (b) after adds extra newline
         $v2 = $verses->get(1);
         expect($v2->number)->toBe(2)
+            ->and($v2->titles)->toHaveCount(1)
+            ->and($v2->titles->get(0)->text)->toBe('Interlúdio{{2}}')
+            ->and($v2->titles->get(0)->type)->toBe(VerseTitleTypeEnum::SECTION)
+            ->and($v2->titles->get(0)->position)->toBe(VerseTitlePositionEnum::END)
             ->and($v2->text)->toContain('Paragrafo dois lorem ipsum')
             ->and($v2->text)->toContain('{{1}}')
             ->and($v2->text)->toContain("\n\n")
-            ->and($v2->references)->toHaveCount(1)
-            ->and($v2->references->first()->text)->toBe('Ref cruzada ficticia Xyz 2.1-3');
+            ->and($v2->references)->toHaveCount(2)
+            ->and($v2->references->get(0)->text)->toBe('Ref cruzada ficticia Xyz 2.1-3')
+            ->and($v2->references->get(1)->slug)->toBe('2')
+            ->and($v2->references->get(1)->text)->toContain('Selá. Termo musical ou literário');
 
         // Verses 3, 4, 5: multiple verses in same paragraph; verse 5 has continuation via para with vid
         $v3 = $verses->get(2);
@@ -271,13 +282,135 @@ describe('ApiBibleContentParser', function () {
             ->and($v5->text)->toContain('Verso cinco incididunt')
             ->and($v5->text)->toContain('Continuacao verso cinco et dolore');
 
-        // Verse 6: paragraph break (q1 then q2) inserts newline; char (sc) inline text
+        // Verse 6: paragraph break (q1 then q2) inserts newline; char (sc) inline text; last qa "Interlúdio" (no note) flushed at end -> title with position end
         $v6 = $verses->get(5);
         expect($v6->number)->toBe(6)
+            ->and($v6->titles)->toHaveCount(1)
+            ->and($v6->titles->get(0)->text)->toBe('Interlúdio')
+            ->and($v6->titles->get(0)->type)->toBe(VerseTitleTypeEnum::SECTION)
+            ->and($v6->titles->get(0)->position)->toBe(VerseTitlePositionEnum::END)
             ->and($v6->text)->toContain('Verso seis primeira linha')
             ->and($v6->text)->toContain("\n")
             ->and($v6->text)->toContain('Segunda linha')
             ->and($v6->text)->toContain('Destaque')
             ->and($v6->text)->toContain('fim do verso seis');
+    });
+
+    it('assigns position start to titles that appear before the first verse', function () {
+        $content = [
+            [
+                'name' => 'para',
+                'type' => 'tag',
+                'attrs' => ['style' => 'd'],
+                'items' => [['text' => 'Título antes do verso um', 'type' => 'text']],
+            ],
+            [
+                'name' => 'para',
+                'type' => 'tag',
+                'attrs' => ['style' => 'p'],
+                'items' => [
+                    ['name' => 'verse', 'type' => 'tag', 'attrs' => ['number' => '1', 'style' => 'v'], 'items' => [['text' => '1', 'type' => 'text']]],
+                    ['text' => 'Texto do verso um.', 'type' => 'text', 'attrs' => ['verseId' => 'TST.1.1']],
+                ],
+            ],
+        ];
+
+        $parser = app(ApiBibleContentParser::class);
+        $verses = $parser->parse($content, 'TST', '1');
+
+        expect($verses)->toHaveCount(1);
+        $v1 = $verses->first();
+        expect($v1->titles)->toHaveCount(1)
+            ->and($v1->titles->first()->text)->toBe('Título antes do verso um')
+            ->and($v1->titles->first()->position)->toBe(VerseTitlePositionEnum::START);
+    });
+
+    it('assigns position end to section title (qa) that appears after a verse and attaches it to previous verse', function () {
+        $content = [
+            [
+                'name' => 'para',
+                'type' => 'tag',
+                'attrs' => ['style' => 'p'],
+                'items' => [
+                    ['name' => 'verse', 'type' => 'tag', 'attrs' => ['number' => '1', 'style' => 'v'], 'items' => [['text' => '1', 'type' => 'text']]],
+                    ['text' => 'Verso um.', 'type' => 'text', 'attrs' => ['verseId' => 'TST.1.1']],
+                ],
+            ],
+            [
+                'name' => 'para',
+                'type' => 'tag',
+                'attrs' => ['style' => 'qa'],
+                'items' => [
+                    ['text' => 'Interlúdio', 'type' => 'text', 'attrs' => ['verseId' => 'TST.1.1', 'verseOrgIds' => ['TST.1.2']]],
+                    [
+                        'name' => 'note',
+                        'type' => 'tag',
+                        'attrs' => ['style' => 'f', 'verseId' => 'TST.1.1'],
+                        'items' => [
+                            [
+                                'name' => 'char',
+                                'type' => 'tag',
+                                'attrs' => ['style' => 'ft'],
+                                'items' => [['text' => 'Nota do interlúdio.', 'type' => 'text']],
+                            ],
+                        ],
+                    ],
+                ],
+            ],
+            [
+                'name' => 'para',
+                'type' => 'tag',
+                'attrs' => ['style' => 'p'],
+                'items' => [
+                    ['name' => 'verse', 'type' => 'tag', 'attrs' => ['number' => '2', 'style' => 'v'], 'items' => [['text' => '2', 'type' => 'text']]],
+                    ['text' => 'Verso dois.', 'type' => 'text', 'attrs' => ['verseId' => 'TST.1.2']],
+                ],
+            ],
+        ];
+
+        $parser = app(ApiBibleContentParser::class);
+        $verses = $parser->parse($content, 'TST', '1');
+
+        expect($verses)->toHaveCount(2);
+        $v1 = $verses->get(0);
+        expect($v1->titles)->toHaveCount(1)
+            ->and($v1->titles->first()->text)->toBe('Interlúdio{{1}}')
+            ->and($v1->titles->first()->position)->toBe(VerseTitlePositionEnum::END)
+            ->and($v1->references)->toHaveCount(1)
+            ->and($v1->references->first()->text)->toBe('Nota do interlúdio.');
+        $v2 = $verses->get(1);
+        expect($v2->titles)->toHaveCount(0)
+            ->and($v2->text)->toContain('Verso dois.');
+    });
+
+    it('attaches remaining titles at end of chapter to last verse with position end', function () {
+        $content = [
+            [
+                'name' => 'para',
+                'type' => 'tag',
+                'attrs' => ['style' => 'p'],
+                'items' => [
+                    ['name' => 'verse', 'type' => 'tag', 'attrs' => ['number' => '1', 'style' => 'v'], 'items' => [['text' => '1', 'type' => 'text']]],
+                    ['text' => 'Único verso.', 'type' => 'text', 'attrs' => ['verseId' => 'TST.1.1']],
+                ],
+            ],
+            [
+                'name' => 'para',
+                'type' => 'tag',
+                'attrs' => ['style' => 'qa'],
+                'items' => [
+                    ['text' => 'Interlúdio', 'type' => 'text', 'attrs' => ['verseId' => 'TST.1.1', 'verseOrgIds' => ['TST.1.2']]],
+                ],
+            ],
+        ];
+
+        $parser = app(ApiBibleContentParser::class);
+        $verses = $parser->parse($content, 'TST', '1');
+
+        expect($verses)->toHaveCount(1);
+        $v1 = $verses->first();
+        expect($v1->titles)->toHaveCount(1)
+            ->and($v1->titles->first()->text)->toBe('Interlúdio')
+            ->and($v1->titles->first()->position)->toBe(VerseTitlePositionEnum::END);
     });
 });

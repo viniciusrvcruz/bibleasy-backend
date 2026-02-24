@@ -8,6 +8,7 @@ use App\Services\Chapter\Parsers\ApiBible\Processors\ParagraphProcessor;
 use App\Services\Chapter\Parsers\ApiBible\TitleBuffer;
 use App\Services\Chapter\Parsers\ApiBible\ValueObjects\ParsingContext;
 use App\Services\Chapter\Parsers\ApiBible\WarningCollector;
+use App\Enums\VerseTitlePositionEnum;
 use Illuminate\Support\Collection;
 
 /**
@@ -38,6 +39,16 @@ class ApiBibleContentParser
 
         foreach ($content as $paragraph) {
             $this->paragraphProcessor->process($paragraph, $context);
+        }
+
+        // Flush any remaining titles to the last verse as end
+        $lastVerseNumber = $this->builder->getLastVerseNumberWithContent();
+        if ($lastVerseNumber !== null && !$this->titleBuffer->isEmpty()) {
+            $this->itemProcessor->addTitlesToVerse(
+                $this->titleBuffer->flush(),
+                $lastVerseNumber,
+                VerseTitlePositionEnum::END
+            );
         }
 
         $this->warnings->flush();

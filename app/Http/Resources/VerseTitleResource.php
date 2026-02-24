@@ -16,6 +16,7 @@ class VerseTitleResource extends JsonResource
         return [
             'text' => $this->text,
             'type' => $this->type->value,
+            'position' => $this->position->value,
         ];
     }
 }

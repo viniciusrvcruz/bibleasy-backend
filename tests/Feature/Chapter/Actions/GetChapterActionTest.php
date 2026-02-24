@@ -17,8 +17,10 @@ describe('GetChapterAction', function () {
             'version_id' => $version->id,
             'abbreviation' => BookAbbreviationEnum::GEN,
         ]);
-        Chapter::factory()->create(['number' => 1, 'book_id' => $book->id]);
-        Verse::factory()->create(['chapter_id' => $book->chapters()->first()->id, 'number' => 1, 'text' => 'Verse 1.']);
+        $chapter = Chapter::factory()->create(['number' => 1, 'book_id' => $book->id]);
+        Verse::factory()->create(['chapter_id' => $chapter->id, 'number' => 1, 'text' => 'Verse 1.']);
+
+        Cache::forget("versions:{$version->id}:books:gen:chapters:1");
 
         $action = app(GetChapterAction::class);
         $result = $action->execute(1, BookAbbreviationEnum::GEN, $version);
