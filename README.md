@@ -17,6 +17,7 @@
   <a href="https://laravel.com/" target="_blank" rel="noreferrer"><img src="https://img.shields.io/badge/Laravel-12-FF2D20?style=for-the-badge&logo=laravel&logoColor=white" alt="Laravel" /></a>
   <a href="https://www.php.net/" target="_blank" rel="noreferrer"><img src="https://img.shields.io/badge/PHP-8.2+-777BB4?style=for-the-badge&logo=php&logoColor=white" alt="PHP" /></a>
   <a href="https://www.postgresql.org/" target="_blank" rel="noreferrer"><img src="https://img.shields.io/badge/PostgreSQL-15+-4169E1?style=for-the-badge&logo=postgresql&logoColor=white" alt="PostgreSQL" /></a>
+  <a href="https://redis.io/" target="_blank" rel="noreferrer"><img src="https://img.shields.io/badge/Redis-DC382D?style=for-the-badge&logo=redis&logoColor=white" alt="Redis" /></a>
   <a href="https://www.docker.com/" target="_blank" rel="noreferrer"><img src="https://img.shields.io/badge/Docker-Compose-2496ED?style=for-the-badge&logo=docker&logoColor=white" alt="Docker" /></a>
   <a href="LICENSE" target="_blank" rel="noreferrer"><img src="https://img.shields.io/badge/License-MIT-22C55E?style=for-the-badge" alt="License" /></a>
 </p>
@@ -77,8 +78,20 @@ O backend permite importar Bíblias completas a partir de arquivos em formatos s
 | ------- | ------- | --- |
 | `usfm` | USFM (Unified Standard Format Markers) | Arquivos `.usfm` por livro; marcadores são limpos e referências processadas |
 | `json_thiago_bodruk` | JSON (estrutura Thiago Bodruk) | JSON com livros, capítulos e versículos no formato esperado pelo adapter |
+| `json_youversion` | JSON (estrutura YouVersion) | JSON no formato YouVersion com livros, capítulos e versículos |
 
 Novos formatos podem ser adicionados implementando `VersionAdapterInterface` e registrando o adapter na `VersionAdapterFactory`.
+
+### Fonte do texto da versão
+
+Ao criar ou editar uma versão, é obrigatório definir a **fonte do texto** (`text_source`):
+
+| Fonte | Descrição |
+| ----- | --------- |
+| `database` | Conteúdo importado e armazenado no PostgreSQL (fluxo tradicional de importação). |
+| `api_bible` | Conteúdo buscado em tempo real da [API Bible](https://rest.api.bible). Requer `external_version_id` (ID da versão na Api.Bible) e `cache_ttl` (TTL do cache em segundos). |
+
+Para versões com `text_source = api_bible`, configure no `.env` as variáveis `API_BIBLE_KEY` e `API_BIBLE_BASE_URL`. O sistema usa adaptadores de capítulo (`DatabaseChapterAdapter` ou `ApiBibleChapterAdapter`) e cache (Redis) para otimizar as requisições.
 
 ### Fluxo da importação
 
@@ -129,6 +142,7 @@ Assim, uma Bíblia importada fica pronta para ser servida pela API com livros, c
 | --------- | --------- |
 | <a href="https://laravel.com/" target="_blank" rel="noreferrer">Laravel 12</a> | Framework PHP |
 | <a href="https://www.postgresql.org/" target="_blank" rel="noreferrer">PostgreSQL</a> | Banco de dados relacional |
+| <a href="https://redis.io/" target="_blank" rel="noreferrer">Redis</a> | Cache (capítulos de fontes externas e otimizações) |
 | <a href="https://laravel.com/docs/sanctum" target="_blank" rel="noreferrer">Laravel Sanctum</a> | Autenticação por API tokens |
 | <a href="https://www.docker.com/" target="_blank" rel="noreferrer">Docker</a> + Docker Compose | Containerização |
 
@@ -153,7 +167,11 @@ cd bibleasy-backend
 # 2. Copie o arquivo de ambiente
 cp .env.example .env
 
-# 3. Suba os containers (setup automático)
+# (Opcional) Para versões com fonte Api.Bible, configure no .env:
+# API_BIBLE_KEY=sua_chave
+# API_BIBLE_BASE_URL=https://rest.api.bible/v1
+
+# 3. Suba os containers (PostgreSQL, Redis e API)
 docker compose up -d
 
 # 4. Execute o seeder (versão e livros de desenvolvimento)
@@ -202,11 +220,16 @@ docker compose exec bible_api php artisan admin:create admin@example.com
 bibleasy-backend/
 ├── app/
 │   ├── Actions/               # Casos de uso (Book, Chapter)
-│   ├── Enums/                 # BookAbbreviation, VersionLanguage, Auth
+│   ├── Enums/                 # BookAbbreviation, VersionLanguage, VersionTextSource, Auth, etc.
 │   ├── Http/Controllers/      # API e Auth
 │   ├── Models/                # Eloquent (Version, Book, Chapter, Verse, User, Admin)
+│   ├── Services/Chapter/      # Fonte de capítulos (banco ou Api.Bible)
+│   │   ├── Adapters/          # DatabaseChapterAdapter, ApiBibleChapterAdapter
+│   │   ├── DTOs/              # ChapterResponseDTO, VerseResponseDTO, VerseTitleDTO
+│   │   ├── Factories/         # ChapterSourceAdapterFactory
+│   │   └── Parsers/ApiBible/  # Parser e processadores do conteúdo Api.Bible
 │   └── Services/Version/      # Importação de versões
-│       ├── Adapters/          # USFM, JsonThiagoBodruk
+│       ├── Adapters/          # USFM, JsonThiagoBodruk, JsonYouVersion
 │       ├── DTOs/              # VersionDTO, BookDTO, ChapterDTO, VerseDTO, VerseReferenceDTO
 │       ├── Factories/         # VersionAdapterFactory
 │       ├── Importers/         # VersionImporter
@@ -217,7 +240,7 @@ bibleasy-backend/
 │   ├── seeders/               # VersionSeeder (versão + livros dev)
 │   └── factories/
 ├── routes/api.php
-├── docker-compose.yml
+├── docker-compose.yml         # bible_api, PostgreSQL, Redis
 └── docker/php/                # Dockerfile e configs PHP
 ```
 
