@@ -90,7 +90,7 @@ describe('ApiBibleChapterAdapter', function () {
 
         Http::fake(['*' => Http::response(null, 500)]);
 
-        config(['services.api_bible.key' => 'test-key', 'services.api_bible.base_url' => 'https://api.scripture.api.bible/v1']);
+        config(['services.api_bible.key' => 'test-key', 'services.api_bible.base_url' => 'https://rest.api.bible/v1']);
 
         $adapter = app(ApiBibleChapterAdapter::class);
 
