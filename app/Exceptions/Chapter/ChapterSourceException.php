@@ -6,15 +6,24 @@ use App\Exceptions\CustomException;
 
 class ChapterSourceException extends CustomException
 {
-    private const STATUS_MAP = [
-        'chapter_not_found' => 404,
-        'external_api_error' => 502,
-        'invalid_response' => 502,
-    ];
-
-    public function __construct(string $type, string $message)
+    public function __construct(string $type, string $message, int $statusCode = 404)
     {
         parent::__construct($type, $message);
-        $this->statusCode = self::STATUS_MAP[$type] ?? 404;
+        $this->statusCode = $statusCode;
+    }
+
+    public static function chapterNotFound(string $message): self
+    {
+        return new self('chapter_not_found', $message, 404);
+    }
+
+    public static function externalApiError(string $message): self
+    {
+        return new self('external_api_error', $message, 502);
+    }
+
+    public static function invalidResponse(string $message): self
+    {
+        return new self('invalid_response', $message, 502);
     }
 }

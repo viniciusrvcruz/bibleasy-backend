@@ -35,7 +35,7 @@ class ApiBibleChapterAdapter extends AbstractCachedChapterAdapter
         $key = config('services.api_bible.key');
 
         if (empty($baseUrl) || empty($key)) {
-            throw new ChapterSourceException('external_api_error', 'API Bible is not configured.');
+            throw ChapterSourceException::externalApiError('API Bible is not configured.');
         }
 
         $bookId = strtoupper($abbreviation->value);
@@ -50,15 +50,14 @@ class ApiBibleChapterAdapter extends AbstractCachedChapterAdapter
             ]);
 
         if (! $response->successful()) {
-            throw new ChapterSourceException(
-                'external_api_error',
+            throw ChapterSourceException::externalApiError(
                 'API Bible request failed: ' . $response->status()
             );
         }
 
         $data = $response->json();
         if (! is_array($data) || ! isset($data['data']['content']) || ! is_array($data['data']['content'])) {
-            throw new ChapterSourceException('invalid_response', 'Invalid API Bible response structure.');
+            throw ChapterSourceException::invalidResponse('Invalid API Bible response structure.');
         }
 
         return $data;
@@ -101,8 +100,7 @@ class ApiBibleChapterAdapter extends AbstractCachedChapterAdapter
             ->exists();
 
         if (! $exists) {
-            throw new ChapterSourceException(
-                'chapter_not_found',
+            throw ChapterSourceException::chapterNotFound(
                 "Chapter {$number} not found for the given book and version."
             );
         }
