@@ -25,7 +25,6 @@ phpunit.xml
 
 docker-compose.yml
 docker/php/Dockerfile
-docker/php/start.sh
 README.md
 *.md
 

@@ -1,14 +1,22 @@
 services:
   bible_api:
     container_name: bible_api
-    build: ./docker/php
-    command: [ "bash", "/app/docker/php/start.sh" ]
+    build:
+      context: .
+      dockerfile: docker/php/Dockerfile
+      target: development
+      args:
+        USER_ID: ${UID:-1000}
+        GROUP_ID: ${GID:-1000}
     ports:
-      - 80:80
+      - 8080:8080
     volumes:
-      - ./:/app
+      - ./:/var/www/html
     depends_on:
       bible_postgresql:
+        condition: service_healthy
+        restart: true
+      bible_redis:
         condition: service_healthy
         restart: true
     networks:
@@ -33,9 +41,25 @@ services:
       timeout: 10s
     networks:
       - bible_network
+  bible_redis:
+    container_name: bible_redis
+    image: redis:latest
+    volumes:
+      - bible_redis_data:/data
+    ports:
+      - 6379:6379
+    networks:
+      - bible_network
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli PING"]
+      interval: 10s
+      retries: 5
+      start_period: 30s
+      timeout: 10s
 
 volumes:
   bible_postgres_data:
+  bible_redis_data:
 
 networks:
   bible_network:

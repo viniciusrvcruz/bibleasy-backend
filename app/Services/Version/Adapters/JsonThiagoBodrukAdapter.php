@@ -9,6 +9,7 @@ use App\Services\Version\DTOs\ChapterDTO;
 use App\Services\Version\DTOs\VerseDTO;
 use App\Services\Version\Interfaces\VersionAdapterInterface;
 use App\Exceptions\Version\VersionImportException;
+use App\Utils\JsonDecode;
 
 /**
  * Adapter for Thiago Bodruk's JSON format
@@ -28,7 +29,11 @@ class JsonThiagoBodrukAdapter implements VersionAdapterInterface
             throw new VersionImportException('invalid_file_extension', 'File must have .json extension');
         }
 
-        $data = $this->decodeJson($firstFile->content);
+        $data = JsonDecode::toArray($firstFile->content);
+
+        if ($data === null) {
+            throw new VersionImportException('invalid_format', 'Invalid JSON format');
+        }
 
         $books = collect($data)->map(function ($book, $bookIndex) {
             $bookName = $book['name'] ?? null;
@@ -52,18 +57,6 @@ class JsonThiagoBodrukAdapter implements VersionAdapterInterface
         });
 
         return new VersionDTO($books);
-    }
-
-    private function decodeJson(string $content): array
-    {
-        $bom = pack('H*', 'EFBBBF');
-        $content = preg_replace("/^$bom/", '', $content);
-
-        try {
-            return json_decode($content, true, 512, JSON_THROW_ON_ERROR);
-        } catch (\JsonException) {
-            throw new VersionImportException('invalid_format', 'JSON must be an array of books');
-        }
     }
 
     private function parseBook(array $bookChapters, string $bookName, int $index): BookDTO

@@ -6,6 +6,7 @@ use App\Actions\Chapter\CompareChaptersAction;
 use App\Actions\Chapter\GetChapterAction;
 use App\Enums\BookAbbreviationEnum;
 use App\Http\Resources\ChapterResource;
+use App\Http\Resources\ChapterResponseResource;
 use App\Models\Version;
 use Illuminate\Http\Request;
 
@@ -19,7 +20,7 @@ class ChapterController extends Controller
             version: $version
         );
 
-        return new ChapterResource($chapter);
+        return new ChapterResponseResource($chapter);
     }
 
     public function comparison(Request $request, BookAbbreviationEnum $abbreviation, int $number)
