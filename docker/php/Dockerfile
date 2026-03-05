@@ -13,6 +13,18 @@ FROM base AS development
 
 USER root
 
+# Save the build arguments as a variable
+ARG USER_ID
+ARG GROUP_ID
+
+# Use the build arguments to change the UID 
+# and GID of www-data while also changing 
+# the file permissions for NGINX
+RUN docker-php-serversideup-set-id www-data $USER_ID:$GROUP_ID && \
+    \
+    # Update the file permissions to match the new UID/GID
+    docker-php-serversideup-set-file-permissions --owner $USER_ID:$GROUP_ID
+
 # Serversideup/php Laravel automations
 ENV PHP_OPCACHE_ENABLE=1 \
     HEALTHCHECK_PATH=/up \
@@ -21,6 +33,9 @@ ENV PHP_OPCACHE_ENABLE=1 \
 
 # Run entrypoint-dev.sh to install dependencies and run migrations
 COPY --chmod=755 docker/php/entrypoint-dev.sh /etc/entrypoint.d/entrypoint-dev.sh
+
+# Run as www-data (with host UID/GID) so volume files have correct ownership
+USER www-data
 
 EXPOSE 8080
 
@@ -44,6 +59,7 @@ RUN composer dump-autoload --optimize --no-dev
 # Set permissions for Laravel directories
 RUN chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
 
+# Switch back to www-data user for security
 USER www-data
 
 EXPOSE 8080

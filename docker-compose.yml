@@ -5,6 +5,9 @@ services:
       context: .
       dockerfile: docker/php/Dockerfile
       target: development
+      args:
+        USER_ID: ${UID:-1000}
+        GROUP_ID: ${GID:-1000}
     ports:
       - 8080:8080
     volumes:
