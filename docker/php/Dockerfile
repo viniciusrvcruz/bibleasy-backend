@@ -1,6 +1,4 @@
-# -----------------------------------------------------------------------------
 # Base stage: shared PHP image and extensions
-# -----------------------------------------------------------------------------
 FROM serversideup/php:8.4-fpm-nginx-alpine AS base
 
 USER root
@@ -10,38 +8,23 @@ COPY docker/php/uploads.ini /usr/local/etc/php/conf.d/
 
 USER www-data
 
-# -----------------------------------------------------------------------------
 # Development target: with dev dependencies, ready for volume mounts
-# -----------------------------------------------------------------------------
 FROM base AS development
 
 USER root
 
-# Dev entrypoint: fix permissions on mounted volume, run composer install, then image entrypoint
-# (No COPY/composer here: volume ./:/var/www/html overwrites it; entrypoint-dev.sh runs composer install)
-COPY docker/php/entrypoint-dev.sh /usr/local/bin/entrypoint-dev.sh
-RUN chmod +x /usr/local/bin/entrypoint-dev.sh
-
 # Serversideup/php Laravel automations
-ENV PHP_OPCACHE_ENABLE=true \
-    AUTORUN_ENABLED=true \
-    AUTORUN_LARAVEL_VIEW_CACHE=false \
-    AUTORUN_LARAVEL_CONFIG_CACHE=false \
-    AUTORUN_LARAVEL_MIGRATION=true \
-    AUTORUN_LARAVEL_MIGRATION_FORCE=true \
-    AUTORUN_LARAVEL_STORAGE_LINK=true
+ENV PHP_OPCACHE_ENABLE=1 \
+    HEALTHCHECK_PATH=/up \
+    AUTORUN_ENABLED=false \
+    AUTORUN_DEBUG=true
 
-# Run entrypoint as root so it can chown; image entrypoint drops to www-data for services
-USER root
-
-ENTRYPOINT ["/usr/local/bin/entrypoint-dev.sh"]
-CMD ["/init"]
+# Run entrypoint-dev.sh to install dependencies and run migrations
+COPY --chmod=755 docker/php/entrypoint-dev.sh /etc/entrypoint.d/entrypoint-dev.sh
 
 EXPOSE 8080
 
-# -----------------------------------------------------------------------------
 # Production target: optimized, no dev dependencies
-# -----------------------------------------------------------------------------
 FROM base AS production
 
 USER root
