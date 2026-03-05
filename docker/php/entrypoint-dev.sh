@@ -5,7 +5,7 @@ if [ ! -f .env ]; then
 fi
 
 echo "Installing dependencies with composer..."
-composer install
+composer install --no-scripts --no-interaction --prefer-dist
 
 # Generate application key (only if APP_KEY is not set)
 if ! grep -q "APP_KEY=" .env || [ -z "$(grep 'APP_KEY=' .env | cut -d '=' -f2)" ]; then
@@ -14,6 +14,4 @@ if ! grep -q "APP_KEY=" .env || [ -z "$(grep 'APP_KEY=' .env | cut -d '=' -f2)" 
 fi
 
 echo "Running migrations..."
-php artisan migrate --force
-
-php artisan serve --host=0.0.0.0 --port=80
+php artisan migrate

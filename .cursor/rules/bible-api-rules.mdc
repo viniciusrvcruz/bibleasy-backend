@@ -10,7 +10,7 @@ alwaysApply: true
   - Use object-oriented programming with a focus on SOLID principles.
   - Prefer iteration and modularization over duplication.
   - Use descriptive variable and method names. 
-  - This project runs inside a docker container, run commands with docker exec -it bible_api 
+  - This project runs inside a docker container, run commands with docker exec bible_api 
   - Favor dependency injection and service containers.
   - This project dont use blade, is just an API 
   - Preference for REST model

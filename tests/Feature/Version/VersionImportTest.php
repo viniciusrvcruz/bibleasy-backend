@@ -1,7 +1,9 @@
 <?php
 
 use App\Enums\VersionLanguageEnum;
+use App\Enums\VersionTextSourceEnum;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Arr;
 
 beforeEach(function () {
     $this->allBookNames = [
@@ -44,6 +46,7 @@ describe('Version Import', function () {
             'name' => 'Test Version Full Name',
             'language' => VersionLanguageEnum::ENGLISH->value,
             'copyright' => 'Public Domain',
+            'text_source' => VersionTextSourceEnum::DATABASE->value,
         ];
 
         $response = $this->postJson('/api/admin/versions', [
@@ -61,7 +64,7 @@ describe('Version Import', function () {
             'copyright',
         ]);
         $response->assertJson([
-            ...$versionData,
+            ...Arr::except($versionData, 'text_source'),
         ]);
         
         $this->assertDatabaseHas('versions', [
@@ -118,6 +121,7 @@ describe('Version Import', function () {
             'abbreviation' => 'Invalid Version',
             'name' => 'Invalid Version Full Name',
             'language' => VersionLanguageEnum::ENGLISH->value,
+            'text_source' => VersionTextSourceEnum::DATABASE->value,
         ]);
 
         $response->assertStatus(422);
@@ -142,6 +146,7 @@ describe('Version Import', function () {
             'abbreviation' => 'Invalid Version',
             'name' => 'Invalid Version Full Name',
             'language' => VersionLanguageEnum::ENGLISH->value,
+            'text_source' => VersionTextSourceEnum::DATABASE->value,
         ]);
 
         $response->assertStatus(422);
