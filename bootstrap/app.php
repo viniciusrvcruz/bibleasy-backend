@@ -12,7 +12,11 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        //
+        $middleware->trustProxies(at: '*');
+
+        $middleware->alias([
+            'chapter.rate_limit' => \App\Http\Middleware\CheckChapterRateLimitBlock::class,
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //

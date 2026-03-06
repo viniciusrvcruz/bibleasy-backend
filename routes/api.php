@@ -11,7 +11,8 @@ Route::get('/versions', [VersionController::class, 'index']);
 Route::prefix('versions/{version}')->group(function () {
     Route::get('/books', [BookController::class, 'index']);
 
-    Route::get('/books/{abbreviation}/chapters/{number}', [ChapterController::class, 'show']);
+    Route::get('/books/{abbreviation}/chapters/{number}', [ChapterController::class, 'show'])
+        ->middleware(['chapter.rate_limit', 'throttle:chapter']);
 });
 
 Route::get('/books/{abbreviation}/chapters/{number}/comparison', [ChapterController::class, 'comparison']);
