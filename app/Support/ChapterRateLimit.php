@@ -55,6 +55,8 @@ class ChapterRateLimit
             $ip = $request->ip();
             $key = $ip . '|' . $versionId;
 
+            Log::warning('Chapter rate limit key: ' . $key . ' for IP: ' . $ip . ' and version: ' . $versionId);
+
             return Limit::perMinute(self::MAX_ATTEMPTS_PER_MINUTE)
                 ->by($key)
                 ->response(function () use ($ip, $versionId): JsonResponse {
