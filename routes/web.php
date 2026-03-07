@@ -10,6 +10,15 @@ Route::get('/', function () {
     ]);
 });
 
+Route::get('/ip', function (Illuminate\Http\Request $request) {
+    return [
+        'ip' => $request->ip(),
+        'forwarded' => $request->header('x-forwarded-for'),
+        'cf' => $request->header('cf-connecting-ip'),
+        'remote_addr' => $_SERVER['REMOTE_ADDR'] ?? null,
+    ];
+});
+
 Route::prefix('auth/admin')->group(function () {
     Route::get('/redirect/{provider}', [AdminSocialAuthController::class, 'redirect'])
         ->name('admin.auth.redirect');

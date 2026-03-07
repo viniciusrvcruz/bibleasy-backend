@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Support\ChapterRateLimit;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Support\ServiceProvider;
@@ -24,5 +25,7 @@ class AppServiceProvider extends ServiceProvider
         Model::preventLazyLoading(! app()->isProduction());
 
         JsonResource::withoutWrapping();
+
+        ChapterRateLimit::register();
     }
 }
