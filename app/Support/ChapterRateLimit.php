@@ -19,6 +19,23 @@ class ChapterRateLimit
 
     public const BLOCK_DURATION_SECONDS = 3600; // 1 hour
 
+    public const API_KEY_HEADER = 'X-Api-Key';
+
+    /**
+     * Check if the request should bypass rate limiting (X-App-Key header must match config key).
+     */
+    public static function shouldBypassRateLimit(Request $request): bool
+    {
+        $configuredKey = config('app.api_key');
+        $headerValue = $request->header(self::API_KEY_HEADER);
+
+        if (empty($headerValue)) {
+            return false;
+        }
+
+        return hash_equals($configuredKey, $headerValue);
+    }
+
     /**
      * Generate the cache key for the block (IP + version scope).
      */
@@ -51,6 +68,10 @@ class ChapterRateLimit
     public static function register(): void
     {
         RateLimiter::for('chapter', function (Request $request) {
+            if (self::shouldBypassRateLimit($request)) {
+                return Limit::none();
+            }
+
             $versionId = $request->route('version');
             $ip = $request->ip();
             $key = $ip . '|' . $versionId;

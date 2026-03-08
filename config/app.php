@@ -107,6 +107,19 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | API Key
+    |--------------------------------------------------------------------------
+    |
+    | Optional key for API consumers. When sent in the X-Api-Key header and
+    | matching this value, the request may bypass certain limits (e.g. chapter
+    | rate limit). Leave empty to disable.
+    |
+    */
+
+    'api_key' => env('API_KEY'),
+
+    /*
+    |--------------------------------------------------------------------------
     | Maintenance Mode Driver
     |--------------------------------------------------------------------------
     |

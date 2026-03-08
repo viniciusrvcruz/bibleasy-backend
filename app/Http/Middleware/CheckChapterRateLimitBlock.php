@@ -19,6 +19,10 @@ class CheckChapterRateLimitBlock
 {
     public function handle(Request $request, Closure $next): Response
     {
+        if (ChapterRateLimit::shouldBypassRateLimit($request)) {
+            return $next($request);
+        }
+
         $versionId = $request->route('version');
         $ip = $request->ip();
         $blockKey = ChapterRateLimit::getBlockKey($ip, $versionId);

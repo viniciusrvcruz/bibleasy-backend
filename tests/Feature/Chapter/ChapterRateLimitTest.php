@@ -6,6 +6,7 @@ use App\Models\Chapter;
 use App\Models\Verse;
 use App\Models\Version;
 use App\Support\ChapterRateLimit;
+use Illuminate\Support\Facades\Config;
 
 beforeEach(function () {
     $this->version = Version::factory()->create();
@@ -146,5 +147,59 @@ describe('Chapter Rate Limit', function () {
 
         $response = $this->withHeaders(['X-Forwarded-For' => $ip])->getJson($url);
         $response->assertStatus(200);
+    });
+});
+
+describe('Chapter Rate Limit with X-App-Key bypass', function () {
+    beforeEach(function () {
+        Config::set('app.api_key', 'test-bypass-key');
+    });
+
+    it('bypasses throttle when X-App-Key header matches config key', function () {
+        $url = "/api/versions/{$this->version->id}/books/gen/chapters/1";
+        $headers = [ChapterRateLimit::API_KEY_HEADER => 'test-bypass-key'];
+
+        for ($i = 0; $i < 65; $i++) {
+            $response = $this->withHeaders($headers)->getJson($url);
+            $response->assertStatus(200);
+        }
+    });
+
+    it('bypasses block when X-App-Key header matches config key even after exceeding limit', function () {
+        $url = "/api/versions/{$this->version->id}/books/gen/chapters/1";
+
+        // Exceed limit without X-App-Key to trigger block
+        for ($i = 0; $i < 61; $i++) {
+            $this->getJson($url);
+        }
+
+        $response = $this->getJson($url);
+        $response->assertStatus(429);
+
+        // Same IP with valid X-App-Key should bypass block and get 200
+        $response = $this->withHeaders([ChapterRateLimit::API_KEY_HEADER => 'test-bypass-key'])->getJson($url);
+        $response->assertStatus(200);
+    });
+
+    it('applies rate limit when X-App-Key header does not match config key', function () {
+        $url = "/api/versions/{$this->version->id}/books/gen/chapters/1";
+
+        for ($i = 0; $i < 60; $i++) {
+            $this->withHeaders([ChapterRateLimit::API_KEY_HEADER => 'wrong-key'])->getJson($url);
+        }
+
+        $response = $this->withHeaders([ChapterRateLimit::API_KEY_HEADER => 'wrong-key'])->getJson($url);
+        $response->assertStatus(429);
+    });
+
+    it('applies rate limit when X-App-Key header is empty', function () {
+        $url = "/api/versions/{$this->version->id}/books/gen/chapters/1";
+
+        for ($i = 0; $i < 60; $i++) {
+            $this->withHeaders([ChapterRateLimit::API_KEY_HEADER => ''])->getJson($url);
+        }
+
+        $response = $this->withHeaders([ChapterRateLimit::API_KEY_HEADER => ''])->getJson($url);
+        $response->assertStatus(429);
     });
 });
