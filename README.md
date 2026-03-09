@@ -218,7 +218,9 @@ bibleasy-backend/
 │   ├── Actions/               # Casos de uso (Book, Chapter)
 │   ├── Enums/                 # BookAbbreviation, VersionLanguage, VersionTextSource, Auth, etc.
 │   ├── Http/Controllers/      # API e Auth
+│   ├── Http/Middleware/       # Middlewares HTTP (IP real, rate limit, etc.)
 │   ├── Models/                # Eloquent (Version, Book, Chapter, Verse, User, Admin)
+│   ├── Support/               # Classes de suporte (rate limit, etc.)
 │   ├── Services/Chapter/      # Fonte de capítulos (banco ou Api.Bible)
 │   │   ├── Adapters/          # DatabaseChapterAdapter, ApiBibleChapterAdapter
 │   │   ├── DTOs/              # ChapterResponseDTO, VerseResponseDTO, VerseTitleDTO
