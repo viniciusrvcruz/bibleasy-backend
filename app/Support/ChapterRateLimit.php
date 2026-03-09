@@ -2,6 +2,7 @@
 
 namespace App\Support;
 
+use App\Models\Version;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -34,6 +35,16 @@ class ChapterRateLimit
         }
 
         return hash_equals($configuredKey, $headerValue);
+    }
+
+    /**
+     * Extract version ID from route parameter (handles both Model and scalar).
+     */
+    public static function getVersionId(Request $request): int|string
+    {
+        $version = $request->route('version');
+        
+        return $version instanceof Version ? $version->id : $version;
     }
 
     /**
@@ -72,8 +83,9 @@ class ChapterRateLimit
                 return Limit::none();
             }
 
-            $versionId = $request->route('version');
+            $versionId = self::getVersionId($request);
             $ip = $request->ip();
+
             $key = $ip . '|' . $versionId;
 
             return Limit::perMinute(self::MAX_ATTEMPTS_PER_MINUTE)

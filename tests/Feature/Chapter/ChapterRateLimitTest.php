@@ -64,6 +64,36 @@ describe('Chapter Rate Limit', function () {
         $response->assertStatus(429);
     });
 
+    it('blocks all chapters for same version after rate limit exceeded on one chapter', function () {
+        // Create chapter 2
+        $chapter2 = Chapter::factory()->create([
+            'number' => 2,
+            'book_id' => $this->book->id,
+        ]);
+        foreach ([1, 2, 3] as $number) {
+            Verse::factory()->create([
+                'chapter_id' => $chapter2->id,
+                'number' => $number,
+            ]);
+        }
+
+        $url1 = "/api/versions/{$this->version->id}/books/gen/chapters/1";
+        $url2 = "/api/versions/{$this->version->id}/books/gen/chapters/2";
+
+        // Exceed limit on chapter 1
+        for ($i = 0; $i < 61; $i++) {
+            $this->getJson($url1);
+        }
+
+        // Chapter 1 should be blocked
+        $response = $this->getJson($url1);
+        $response->assertStatus(429);
+
+        // Chapter 2 should also be blocked (same IP + version)
+        $response = $this->getJson($url2);
+        $response->assertStatus(429);
+    });
+
     it('does not share limit between different IPs', function () {
         $url = "/api/versions/{$this->version->id}/books/gen/chapters/1";
 

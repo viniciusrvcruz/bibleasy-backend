@@ -23,8 +23,9 @@ class CheckChapterRateLimitBlock
             return $next($request);
         }
 
-        $versionId = $request->route('version');
+        $versionId = ChapterRateLimit::getVersionId($request);
         $ip = $request->ip();
+
         $blockKey = ChapterRateLimit::getBlockKey($ip, $versionId);
 
         if (ChapterRateLimit::isBlocked($blockKey)) {
