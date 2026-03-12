@@ -6,7 +6,7 @@
         "bookId": "TST",
         "reference": "Lorem ipsum fixture",
         "copyright": "Lorem ipsum fixture. All ids and text are synthetic for testing.",
-        "verseCount": 6,
+        "verseCount": 8,
         "content": [
             {
                 "name": "para",
@@ -339,6 +339,80 @@
                         "attrs": {
                             "verseId": "TST.1.6",
                             "verseOrgIds": ["TST.1.7"]
+                        }
+                    }
+                ]
+            },
+            {
+                "name": "para",
+                "type": "tag",
+                "attrs": { "style": "q1" },
+                "items": [
+                    {
+                        "name": "verse",
+                        "type": "tag",
+                        "attrs": { "number": "7", "style": "v" },
+                        "items": [{ "text": "7", "type": "text" }]
+                    },
+                    {
+                        "text": "Verso sete texto antes do titulo.",
+                        "type": "text",
+                        "attrs": {
+                            "verseId": "TST.1.7",
+                            "verseOrgIds": ["TST.1.7"]
+                        }
+                    }
+                ]
+            },
+            {
+                "name": "para",
+                "type": "tag",
+                "attrs": { "style": "s1" },
+                "items": [
+                    { "text": "Titulo entre versos", "type": "text" },
+                    {
+                        "name": "note",
+                        "type": "tag",
+                        "attrs": {
+                            "caller": "+",
+                            "style": "f",
+                            "id": "TST.1.8!f.1",
+                            "verseId": "TST.1.8"
+                        },
+                        "items": [
+                            {
+                                "name": "char",
+                                "type": "tag",
+                                "attrs": { "style": "fr", "closed": "false" },
+                                "items": [{ "text": "1.8 ", "type": "text" }]
+                            },
+                            {
+                                "name": "char",
+                                "type": "tag",
+                                "attrs": { "style": "ft", "closed": "false" },
+                                "items": [{ "text": "Nota do titulo com verseId apontando para o proximo verso.", "type": "text" }]
+                            }
+                        ]
+                    }
+                ]
+            },
+            {
+                "name": "para",
+                "type": "tag",
+                "attrs": { "style": "q1" },
+                "items": [
+                    {
+                        "name": "verse",
+                        "type": "tag",
+                        "attrs": { "number": "8", "style": "v" },
+                        "items": [{ "text": "8", "type": "text" }]
+                    },
+                    {
+                        "text": "Verso oito texto apos o titulo.",
+                        "type": "text",
+                        "attrs": {
+                            "verseId": "TST.1.8",
+                            "verseOrgIds": ["TST.1.8"]
                         }
                     }
                 ]

@@ -234,7 +234,7 @@ describe('ApiBibleContentParser', function () {
         $parser = app(ApiBibleContentParser::class);
         $verses = $parser->parse($content, 'TST', '1');
 
-        expect($verses)->toHaveCount(6);
+        expect($verses)->toHaveCount(8);
 
         // Verse 1: section title (s1) with note placeholder, reference title (r), chapter-label note (ref_prefix), text, inline footnote; titles before first verse have position start
         $v1 = $verses->get(0);
@@ -282,7 +282,7 @@ describe('ApiBibleContentParser', function () {
             ->and($v5->text)->toContain('Verso cinco incididunt')
             ->and($v5->text)->toContain('Continuacao verso cinco et dolore');
 
-        // Verse 6: paragraph break (q1 then q2) inserts newline; char (sc) inline text; last qa "Interlúdio" (no note) flushed at end -> title with position end
+        // Verse 6: paragraph break (q1 then q2) inserts newline; char (sc) inline text; qa "Interlúdio" (no note) flushed when verse 7 tag is found -> title with position end
         $v6 = $verses->get(5);
         expect($v6->number)->toBe(6)
             ->and($v6->titles)->toHaveCount(1)
@@ -294,6 +294,25 @@ describe('ApiBibleContentParser', function () {
             ->and($v6->text)->toContain('Segunda linha')
             ->and($v6->text)->toContain('Destaque')
             ->and($v6->text)->toContain('fim do verso seis');
+
+        // Verse 7: s1 title with note whose verseId points to verse 8 (next verse) -> title and reference must stay on verse 7 (position end), not leak to verse 8
+        $v7 = $verses->get(6);
+        expect($v7->number)->toBe(7)
+            ->and($v7->titles)->toHaveCount(1)
+            ->and($v7->titles->get(0)->text)->toBe('Titulo entre versos{{1}}')
+            ->and($v7->titles->get(0)->type)->toBe(VerseTitleTypeEnum::SECTION)
+            ->and($v7->titles->get(0)->position)->toBe(VerseTitlePositionEnum::END)
+            ->and($v7->references)->toHaveCount(1)
+            ->and($v7->references->get(0)->slug)->toBe('1')
+            ->and($v7->references->get(0)->text)->toBe('1.8 Nota do titulo com verseId apontando para o proximo verso.')
+            ->and($v7->text)->toContain('Verso sete texto antes do titulo.');
+
+        // Verse 8: must have no titles and no references (they belong to verse 7)
+        $v8 = $verses->get(7);
+        expect($v8->number)->toBe(8)
+            ->and($v8->titles)->toHaveCount(0)
+            ->and($v8->references)->toHaveCount(0)
+            ->and($v8->text)->toContain('Verso oito texto apos o titulo.');
     });
 
     it('assigns position start to titles that appear before the first verse', function () {
@@ -381,6 +400,78 @@ describe('ApiBibleContentParser', function () {
         $v2 = $verses->get(1);
         expect($v2->titles)->toHaveCount(0)
             ->and($v2->text)->toContain('Verso dois.');
+    });
+
+    it('attaches section title note reference to previous verse when note verseId points to next verse', function () {
+        $content = [
+            [
+                'name' => 'para',
+                'type' => 'tag',
+                'attrs' => ['style' => 'q1'],
+                'items' => [
+                    ['name' => 'verse', 'type' => 'tag', 'attrs' => ['number' => '1', 'style' => 'v'], 'items' => [['text' => '1', 'type' => 'text']]],
+                    ['text' => 'Cântico dos Cânticos de Salomão.', 'type' => 'text', 'attrs' => ['verseId' => 'SNG.1.1']],
+                ],
+            ],
+            [
+                'name' => 'para',
+                'type' => 'tag',
+                'attrs' => ['style' => 's1'],
+                'items' => [
+                    ['text' => 'A Amada', 'type' => 'text'],
+                    [
+                        'name' => 'note',
+                        'type' => 'tag',
+                        'attrs' => ['caller' => '+', 'style' => 'f', 'id' => 'SNG.1.2!f.1', 'verseId' => 'SNG.1.2'],
+                        'items' => [
+                            [
+                                'name' => 'char',
+                                'type' => 'tag',
+                                'attrs' => ['style' => 'fr', 'closed' => 'false'],
+                                'items' => [['text' => '1.2 ', 'type' => 'text']],
+                            ],
+                            [
+                                'name' => 'char',
+                                'type' => 'tag',
+                                'attrs' => ['style' => 'ft', 'closed' => 'false'],
+                                'items' => [['text' => 'Nota explicativa sobre os interlocutores.', 'type' => 'text']],
+                            ],
+                        ],
+                    ],
+                ],
+            ],
+            [
+                'name' => 'para',
+                'type' => 'tag',
+                'attrs' => ['style' => 'q1'],
+                'items' => [
+                    ['name' => 'verse', 'type' => 'tag', 'attrs' => ['number' => '2', 'style' => 'v'], 'items' => [['text' => '2', 'type' => 'text']]],
+                    ['text' => 'Ah, se ele me beijasse.', 'type' => 'text', 'attrs' => ['verseId' => 'SNG.1.2']],
+                ],
+            ],
+        ];
+
+        $parser = app(ApiBibleContentParser::class);
+        $verses = $parser->parse($content, 'SNG', '1');
+
+        expect($verses)->toHaveCount(2);
+
+        $v1 = $verses->get(0);
+        expect($v1->number)->toBe(1)
+            ->and($v1->titles)->toHaveCount(1)
+            ->and($v1->titles->first()->text)->toBe('A Amada{{1}}')
+            ->and($v1->titles->first()->type)->toBe(VerseTitleTypeEnum::SECTION)
+            ->and($v1->titles->first()->position)->toBe(VerseTitlePositionEnum::END)
+            ->and($v1->references)->toHaveCount(1)
+            ->and($v1->references->first()->slug)->toBe('1')
+            ->and($v1->references->first()->text)->toContain('Nota explicativa sobre os interlocutores.')
+            ->and($v1->text)->toContain('Cântico dos Cânticos de Salomão.');
+
+        $v2 = $verses->get(1);
+        expect($v2->number)->toBe(2)
+            ->and($v2->titles)->toHaveCount(0)
+            ->and($v2->references)->toHaveCount(0)
+            ->and($v2->text)->toContain('Ah, se ele me beijasse.');
     });
 
     it('attaches remaining titles at end of chapter to last verse with position end', function () {

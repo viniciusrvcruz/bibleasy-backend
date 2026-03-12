@@ -93,10 +93,11 @@ class ItemProcessor
     }
 
     /**
-     * Builds section/reference title text from items, processing notes as placeholders (e.g. {{1}})
-     * and adding the note content as references to the verse indicated by the note's verseId.
+     * Builds section/reference title text from items, processing notes as placeholders (e.g. {{1}}).
+     * References are attached to the verse that will own the title: currentVerseNumber when
+     * the title appears after a verse, or the target verse number supplied by the caller.
      */
-    public function buildTitleTextWithNotePlaceholders(array $items, ParsingContext $context): string
+    public function buildTitleTextWithNotePlaceholders(array $items, ParsingContext $context, ?int $targetVerseNumber = null): string
     {
         $result = '';
         foreach ($items as $item) {
@@ -106,7 +107,7 @@ class ItemProcessor
                 continue;
             }
             if ($itemType === ItemTypeEnum::NOTE) {
-                $placeholder = $this->processNoteForTitle($item, $context);
+                $placeholder = $this->processNoteForTitle($item, $context, $targetVerseNumber);
                 $result .= $placeholder ?? '';
                 continue;
             }
@@ -117,10 +118,11 @@ class ItemProcessor
     }
 
     /**
-     * Processes a note item inside a title paragraph: adds the reference to the verse from note's verseId,
-     * returns the placeholder string (e.g. "{{1}}") to be inserted in the title text.
+     * Processes a note item inside a title paragraph: adds the reference to the verse
+     * that owns the title and returns the placeholder string (e.g. "{{1}}").
+     * Uses currentVerseNumber (title after a verse) or targetVerseNumber (title before first verse).
      */
-    public function processNoteForTitle(array $noteItem, ParsingContext $context): ?string
+    public function processNoteForTitle(array $noteItem, ParsingContext $context, ?int $targetVerseNumber = null): ?string
     {
         $verseId = $noteItem['attrs']['verseId'] ?? null;
         $noteStyle = $noteItem['attrs']['style'] ?? '';
@@ -134,9 +136,9 @@ class ItemProcessor
             return null;
         }
 
-        $verseNumber = $this->parseVerseNumber($verseId, $context);
+        $verseNumber = $this->currentVerseNumber ?? $targetVerseNumber ?? $this->parseVerseNumber($verseId, $context);
         if ($verseNumber === null) {
-            $this->warnings->add('ApiBibleContentParser: note in title skipped (verseId does not match chapter).', [
+            $this->warnings->add('ApiBibleContentParser: note in title skipped (no target verse available).', [
                 'context' => $context->getContextKey(),
                 'verse_id' => $verseId,
             ]);
