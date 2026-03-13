@@ -8,6 +8,7 @@ use App\Services\Chapter\Parsers\ApiBible\Processors\ParagraphProcessor;
 use App\Services\Chapter\Parsers\ApiBible\TitleBuffer;
 use App\Services\Chapter\Parsers\ApiBible\ValueObjects\ParsingContext;
 use App\Services\Chapter\Parsers\ApiBible\WarningCollector;
+use App\Services\Chapter\Validators\ReferenceSlugValidator;
 use App\Enums\VerseTitlePositionEnum;
 use Illuminate\Support\Collection;
 
@@ -23,7 +24,8 @@ class ApiBibleContentParser
     public function __construct(
         private readonly WarningCollector $warnings,
         private readonly TitleBuffer $titleBuffer,
-        private readonly ChapterVerseBuilder $builder
+        private readonly ChapterVerseBuilder $builder,
+        private readonly ReferenceSlugValidator $referenceSlugValidator
     )
     {
         $this->itemProcessor = new ItemProcessor($this->builder, $this->titleBuffer, $this->warnings);
@@ -51,8 +53,23 @@ class ApiBibleContentParser
             );
         }
 
+        $verses = $this->builder->build();
+
+        $this->collectReferenceSlugWarnings($verses, $bookId, $chapterNumber);
         $this->warnings->flush();
 
-        return $this->builder->build();
+        return $verses;
+    }
+
+    /**
+     * Collects reference-slug validation warnings and adds them to the warning collector.
+     *
+     * @param  Collection<int, \App\Services\Chapter\DTOs\VerseResponseDTO>  $verses
+     */
+    private function collectReferenceSlugWarnings(Collection $verses, string $bookId, string $chapterNumber): void
+    {
+        foreach ($this->referenceSlugValidator->getWarnings($verses, $bookId, $chapterNumber) as $warning) {
+            $this->warnings->add($warning['message'], $warning['context']);
+        }
     }
 }
