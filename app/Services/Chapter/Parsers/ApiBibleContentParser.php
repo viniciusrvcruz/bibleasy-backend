@@ -35,8 +35,10 @@ class ApiBibleContentParser
     /**
      * @return Collection<int, VerseResponseDTO>
      */
-    public function parse(array $content, string $bookId, string $chapterNumber): Collection
+    public function parse(array $content, string $bookId, string $chapterNumber, string $versionAbbreviation): Collection
     {
+        $this->warnings->setVersionAbbreviation($versionAbbreviation);
+
         $context = new ParsingContext($bookId, $chapterNumber);
 
         foreach ($content as $paragraph) {

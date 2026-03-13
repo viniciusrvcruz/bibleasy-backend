@@ -54,7 +54,7 @@ describe('ApiBibleContentParser', function () {
         ];
 
         $parser = app(ApiBibleContentParser::class);
-        $verses = $parser->parse($content, 'PSA', '119');
+        $verses = $parser->parse($content, 'PSA', '119', 'DEV');
 
         expect($verses)->toHaveCount(1);
         $v1 = $verses->first();
@@ -92,7 +92,7 @@ describe('ApiBibleContentParser', function () {
         ];
 
         $parser = app(ApiBibleContentParser::class);
-        $verses = $parser->parse($content, 'PSA', '119');
+        $verses = $parser->parse($content, 'PSA', '119', 'DEV');
 
         expect($verses->first()->text)->toContain("\n")
             ->and($verses->first()->text)->toContain('First line')
@@ -135,7 +135,7 @@ describe('ApiBibleContentParser', function () {
         ];
 
         $parser = app(ApiBibleContentParser::class);
-        $verses = $parser->parse($content, 'PSA', '120');
+        $verses = $parser->parse($content, 'PSA', '120', 'DEV');
 
         expect($verses)->toHaveCount(1);
         $v1 = $verses->first();
@@ -178,7 +178,7 @@ describe('ApiBibleContentParser', function () {
         ];
 
         $parser = app(ApiBibleContentParser::class);
-        $verses = $parser->parse($content, 'PSA', '119');
+        $verses = $parser->parse($content, 'PSA', '119', 'DEV');
 
         expect($verses)->toHaveCount(1);
         $v = $verses->first();
@@ -216,7 +216,7 @@ describe('ApiBibleContentParser', function () {
         ];
 
         $parser = app(ApiBibleContentParser::class);
-        $verses = $parser->parse($content, 'TST', '1');
+        $verses = $parser->parse($content, 'TST', '1', 'DEV');
 
         expect($verses)->toHaveCount(2);
         $v1 = $verses->get(0);
@@ -232,7 +232,7 @@ describe('ApiBibleContentParser', function () {
         $content = $json['data']['content'];
 
         $parser = app(ApiBibleContentParser::class);
-        $verses = $parser->parse($content, 'TST', '1');
+        $verses = $parser->parse($content, 'TST', '1', 'DEV');
 
         expect($verses)->toHaveCount(8);
 
@@ -335,7 +335,7 @@ describe('ApiBibleContentParser', function () {
         ];
 
         $parser = app(ApiBibleContentParser::class);
-        $verses = $parser->parse($content, 'TST', '1');
+        $verses = $parser->parse($content, 'TST', '1', 'DEV');
 
         expect($verses)->toHaveCount(1);
         $v1 = $verses->first();
@@ -388,7 +388,7 @@ describe('ApiBibleContentParser', function () {
         ];
 
         $parser = app(ApiBibleContentParser::class);
-        $verses = $parser->parse($content, 'TST', '1');
+        $verses = $parser->parse($content, 'TST', '1', 'DEV');
 
         expect($verses)->toHaveCount(2);
         $v1 = $verses->get(0);
@@ -452,7 +452,7 @@ describe('ApiBibleContentParser', function () {
         ];
 
         $parser = app(ApiBibleContentParser::class);
-        $verses = $parser->parse($content, 'SNG', '1');
+        $verses = $parser->parse($content, 'SNG', '1', 'DEV');
 
         expect($verses)->toHaveCount(2);
 
@@ -496,7 +496,7 @@ describe('ApiBibleContentParser', function () {
         ];
 
         $parser = app(ApiBibleContentParser::class);
-        $verses = $parser->parse($content, 'TST', '1');
+        $verses = $parser->parse($content, 'TST', '1', 'DEV');
 
         expect($verses)->toHaveCount(1);
         $v1 = $verses->first();

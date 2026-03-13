@@ -73,7 +73,12 @@ class ApiBibleChapterAdapter extends AbstractCachedChapterAdapter
         $bookId = $raw['data']['bookId'] ?? strtoupper($abbreviation->value);
         $chapterNumber = (string) ($raw['data']['number'] ?? $number);
 
-        $verses = $this->parser->parse($content, $bookId, $chapterNumber);
+        $verses = $this->parser->parse(
+            content: $content,
+            bookId: $bookId,
+            chapterNumber: $chapterNumber,
+            versionAbbreviation: $version->abbreviation
+        );
 
         $book = $version->books()->where('abbreviation', $abbreviation)->first();
         $bookName = $book?->name ?? $abbreviation->value;
