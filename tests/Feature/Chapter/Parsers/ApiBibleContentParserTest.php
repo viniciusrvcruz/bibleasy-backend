@@ -504,4 +504,153 @@ describe('ApiBibleContentParser', function () {
             ->and($v1->titles->first()->text)->toBe('Interlúdio')
             ->and($v1->titles->first()->position)->toBe(VerseTitlePositionEnum::END);
     });
+
+    it('assigns position custom with slug to speaker title (sp) that appears mid-verse', function () {
+        $content = [
+            [
+                'name' => 'para',
+                'type' => 'tag',
+                'attrs' => ['style' => 'q'],
+                'items' => [
+                    ['name' => 'verse', 'type' => 'tag', 'attrs' => ['number' => '4', 'style' => 'v'], 'items' => [['text' => '4', 'type' => 'text']]],
+                    ['text' => 'Leve-me com você! Vamos correr juntos!', 'type' => 'text', 'attrs' => ['verseId' => 'SNG.1.4']],
+                ],
+            ],
+            [
+                'name' => 'para',
+                'type' => 'tag',
+                'attrs' => ['style' => 'sp', 'vid' => 'SNG 1:4'],
+                'items' => [
+                    ['text' => 'As mulheres de Jerusalém', 'type' => 'text'],
+                ],
+            ],
+            [
+                'name' => 'para',
+                'type' => 'tag',
+                'attrs' => ['style' => 'q', 'vid' => 'SNG 1:4'],
+                'items' => [
+                    ['text' => 'Ó rei, estamos alegres e felizes por sua causa!', 'type' => 'text', 'attrs' => ['verseId' => 'SNG.1.4']],
+                ],
+            ],
+            [
+                'name' => 'para',
+                'type' => 'tag',
+                'attrs' => ['style' => 'sp', 'vid' => 'SNG 1:4'],
+                'items' => [
+                    ['text' => 'A Amada', 'type' => 'text'],
+                ],
+            ],
+            [
+                'name' => 'para',
+                'type' => 'tag',
+                'attrs' => ['style' => 'q', 'vid' => 'SNG 1:4'],
+                'items' => [
+                    ['text' => 'Com razão elas o amam.', 'type' => 'text', 'attrs' => ['verseId' => 'SNG.1.4']],
+                ],
+            ],
+        ];
+
+        $parser = app(ApiBibleContentParser::class);
+        $verses = $parser->parse($content, 'SNG', '1', 'DEV');
+
+        expect($verses)->toHaveCount(1);
+        $v4 = $verses->first();
+        expect($v4->number)->toBe(4)
+            ->and($v4->titles)->toHaveCount(2)
+            ->and($v4->titles->get(0)->text)->toBe('As mulheres de Jerusalém')
+            ->and($v4->titles->get(0)->type)->toBe(VerseTitleTypeEnum::SECTION)
+            ->and($v4->titles->get(0)->position)->toBe(VerseTitlePositionEnum::CUSTOM)
+            ->and($v4->titles->get(0)->slug)->toBe('1')
+            ->and($v4->titles->get(1)->text)->toBe('A Amada')
+            ->and($v4->titles->get(1)->type)->toBe(VerseTitleTypeEnum::SECTION)
+            ->and($v4->titles->get(1)->position)->toBe(VerseTitlePositionEnum::CUSTOM)
+            ->and($v4->titles->get(1)->slug)->toBe('2')
+            ->and($v4->text)->toContain('[[1]]')
+            ->and($v4->text)->toContain('[[2]]')
+            ->and($v4->text)->toContain('Leve-me com você!')
+            ->and($v4->text)->toContain('Ó rei, estamos alegres')
+            ->and($v4->text)->toContain('Com razão elas o amam.');
+    });
+
+    it('buffers speaker title (sp) as regular section title when no verse is active yet', function () {
+        $content = [
+            [
+                'name' => 'para',
+                'type' => 'tag',
+                'attrs' => ['style' => 'sp'],
+                'items' => [
+                    ['text' => 'A Amada', 'type' => 'text'],
+                ],
+            ],
+            [
+                'name' => 'para',
+                'type' => 'tag',
+                'attrs' => ['style' => 'q'],
+                'items' => [
+                    ['name' => 'verse', 'type' => 'tag', 'attrs' => ['number' => '2', 'style' => 'v'], 'items' => [['text' => '2', 'type' => 'text']]],
+                    ['text' => 'Ah, se ele me beijasse com beijos de sua boca!', 'type' => 'text', 'attrs' => ['verseId' => 'SNG.1.2']],
+                ],
+            ],
+        ];
+
+        $parser = app(ApiBibleContentParser::class);
+        $verses = $parser->parse($content, 'SNG', '1', 'DEV');
+
+        expect($verses)->toHaveCount(1);
+        $v2 = $verses->first();
+        expect($v2->number)->toBe(2)
+            ->and($v2->titles)->toHaveCount(1)
+            ->and($v2->titles->first()->text)->toBe('A Amada')
+            ->and($v2->titles->first()->type)->toBe(VerseTitleTypeEnum::SECTION)
+            ->and($v2->titles->first()->position)->toBe(VerseTitlePositionEnum::START)
+            ->and($v2->titles->first()->slug)->toBeNull()
+            ->and($v2->text)->toContain('Ah, se ele me beijasse');
+    });
+
+    it('assigns position end to speaker title (sp) between two different verses', function () {
+        $content = [
+            [
+                'name' => 'para',
+                'type' => 'tag',
+                'attrs' => ['style' => 'q'],
+                'items' => [
+                    ['name' => 'verse', 'type' => 'tag', 'attrs' => ['number' => '7', 'style' => 'v'], 'items' => [['text' => '7', 'type' => 'text']]],
+                    ['text' => 'Texto do verso sete.', 'type' => 'text', 'attrs' => ['verseId' => 'SNG.1.7']],
+                ],
+            ],
+            [
+                'name' => 'para',
+                'type' => 'tag',
+                'attrs' => ['style' => 'sp'],
+                'items' => [
+                    ['text' => 'O Amado', 'type' => 'text'],
+                ],
+            ],
+            [
+                'name' => 'para',
+                'type' => 'tag',
+                'attrs' => ['style' => 'q'],
+                'items' => [
+                    ['name' => 'verse', 'type' => 'tag', 'attrs' => ['number' => '8', 'style' => 'v'], 'items' => [['text' => '8', 'type' => 'text']]],
+                    ['text' => 'Texto do verso oito.', 'type' => 'text', 'attrs' => ['verseId' => 'SNG.1.8']],
+                ],
+            ],
+        ];
+
+        $parser = app(ApiBibleContentParser::class);
+        $verses = $parser->parse($content, 'SNG', '1', 'DEV');
+
+        expect($verses)->toHaveCount(2);
+        $v7 = $verses->get(0);
+        expect($v7->number)->toBe(7)
+            ->and($v7->titles)->toHaveCount(1)
+            ->and($v7->titles->first()->text)->toBe('O Amado')
+            ->and($v7->titles->first()->type)->toBe(VerseTitleTypeEnum::SECTION)
+            ->and($v7->titles->first()->position)->toBe(VerseTitlePositionEnum::END)
+            ->and($v7->titles->first()->slug)->toBeNull();
+
+        $v8 = $verses->get(1);
+        expect($v8->number)->toBe(8)
+            ->and($v8->titles)->toHaveCount(0);
+    });
 });

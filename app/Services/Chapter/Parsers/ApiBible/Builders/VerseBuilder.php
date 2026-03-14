@@ -19,6 +19,8 @@ class VerseBuilder
 
     private int $slugCount = 0;
 
+    private int $titleSlugCount = 0;
+
     public function addTitle(VerseTitleDTO $title): void
     {
         $this->titles[] = $title;
@@ -42,6 +44,11 @@ class VerseBuilder
     public function nextSlug(): string
     {
         return (string) ++$this->slugCount;
+    }
+
+    public function nextTitleSlug(): string
+    {
+        return (string) ++$this->titleSlugCount;
     }
 
     public function hasContent(): bool

@@ -11,5 +11,6 @@ class VerseTitleDTO
         public readonly string $text,
         public readonly VerseTitleTypeEnum $type,
         public readonly VerseTitlePositionEnum $position = VerseTitlePositionEnum::START,
+        public readonly ?string $slug = null,
     ) {}
 }

@@ -14,6 +14,7 @@ class ParagraphProcessor
     private const CHAPTER_LABEL_STYLE = 'cl';
     private const BLANK_PARAGRAPH_STYLE = 'b';
     private const SECTION_TITLE_STYLES = ['d', 's', 's1', 's2', 's3', 'qa', 'ms', 'ms1', 'ms2', 'ms3'];
+    private const SPEAKER_TITLE_STYLES = ['sp'];
     private const REFERENCE_TITLE_STYLES = ['r', 'mr'];
 
     public function __construct(
@@ -45,6 +46,11 @@ class ParagraphProcessor
 
         if ($this->isSectionTitle($style)) {
             $this->processSectionTitle($items, $baseContext);
+            return;
+        }
+
+        if ($this->isSpeakerTitle($style)) {
+            $this->processSpeakerTitle($items);
             return;
         }
 
@@ -90,6 +96,11 @@ class ParagraphProcessor
         return in_array($style, self::SECTION_TITLE_STYLES, true);
     }
 
+    private function isSpeakerTitle(string $style): bool
+    {
+        return in_array($style, self::SPEAKER_TITLE_STYLES, true);
+    }
+
     private function isReferenceTitle(string $style): bool
     {
         return in_array($style, self::REFERENCE_TITLE_STYLES, true);
@@ -100,6 +111,7 @@ class ParagraphProcessor
         return in_array($style, array_merge(
             [self::CHAPTER_LABEL_STYLE, self::BLANK_PARAGRAPH_STYLE],
             self::SECTION_TITLE_STYLES,
+            self::SPEAKER_TITLE_STYLES,
             self::REFERENCE_TITLE_STYLES,
             UsfmMarkers::PARAGRAPH_BREAK_MARKERS
         ), true);
@@ -130,6 +142,14 @@ class ParagraphProcessor
         $text = $this->itemProcessor->buildTitleTextWithNotePlaceholders($items, $context);
         if ($text !== '') {
             $this->titleBuffer->add(new VerseTitleDTO($text, VerseTitleTypeEnum::SECTION));
+        }
+    }
+
+    private function processSpeakerTitle(array $items): void
+    {
+        $text = $this->itemProcessor->extractTextFromItems($items);
+        if ($text !== '') {
+            $this->itemProcessor->addCustomTitle(new VerseTitleDTO($text, VerseTitleTypeEnum::SECTION));
         }
     }
 

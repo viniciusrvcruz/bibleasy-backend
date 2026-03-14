@@ -2,19 +2,20 @@
 
 namespace App\Services\Chapter\Validators;
 
+use App\Enums\VerseTitlePositionEnum;
 use App\Services\Chapter\DTOs\VerseResponseDTO;
 use Illuminate\Support\Collection;
 
 /**
- * Validates that every verse reference has its slug present as {{slug}} in the verse text or in any title text.
- * Returns an array of warnings for each reference whose slug is missing from both.
+ * Validates that every verse reference has its slug present as {{slug}} in the verse text or in any title text,
+ * and that every custom-position title has its slug present as [[slug]] in the verse text.
  */
 class ReferenceSlugValidator
 {
     private const LOG_TRUNCATE_LENGTH = 50;
 
     /**
-     * Returns warnings for references whose slug is not found in verse or title text.
+     * Returns warnings for references/titles whose slug is not found in the verse text.
      *
      * @param  Collection<int, VerseResponseDTO>  $verses
      * @return array<int, array{message: string, context: array<string, mixed>}>
@@ -25,10 +26,6 @@ class ReferenceSlugValidator
         $contextKey = "{$bookId}.{$chapterNumber}";
 
         foreach ($verses as $verse) {
-            if ($verse->references->isEmpty()) {
-                continue;
-            }
-
             $verseText = $verse->text;
             $titleTexts = $verse->titles->map(fn ($t) => $t->text)->implode(' ');
             $combinedText = $verseText . ' ' . $titleTexts;
@@ -43,6 +40,24 @@ class ReferenceSlugValidator
                             'verse_number' => $verse->number,
                             'reference_slug' => $reference->slug,
                             'reference_text_snippet' => $this->truncate($reference->text),
+                        ],
+                    ];
+                }
+            }
+
+            foreach ($verse->titles as $title) {
+                if ($title->position !== VerseTitlePositionEnum::CUSTOM || $title->slug === null) {
+                    continue;
+                }
+                $placeholder = '[[' . $title->slug . ']]';
+                if (! str_contains($verseText, $placeholder)) {
+                    $warnings[] = [
+                        'message' => 'ApiBibleContentParser: title slug missing from verse text.',
+                        'context' => [
+                            'context' => $contextKey,
+                            'verse_number' => $verse->number,
+                            'title_slug' => $title->slug,
+                            'title_text_snippet' => $this->truncate($title->text),
                         ],
                     ];
                 }
