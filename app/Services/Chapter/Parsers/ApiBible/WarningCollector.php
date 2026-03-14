@@ -9,13 +9,26 @@ class WarningCollector
     /** @var array<array{message: string, context: array<string, mixed>}> */
     private array $warnings = [];
 
+    private ?string $versionAbbreviation = null;
+
     public function __construct(private readonly LoggerInterface $logger)
     {
     }
 
+    /**
+     * Sets the version abbreviation so every warning log includes it in context until flush().
+     */
+    public function setVersionAbbreviation(string $abbreviation): void
+    {
+        $this->versionAbbreviation = $abbreviation;
+    }
+
     public function add(string $message, array $context = []): void
     {
-        $this->warnings[] = ['message' => $message, 'context' => $context];
+        $this->warnings[] = [
+            'message' => $message,
+            'context' => array_merge($context, ['version_abbreviation' => $this->versionAbbreviation]),
+        ];
     }
 
     public function flush(): void
@@ -25,6 +38,7 @@ class WarningCollector
         }
 
         $this->warnings = [];
+        $this->versionAbbreviation = null;
     }
 
     public function hasWarnings(): bool

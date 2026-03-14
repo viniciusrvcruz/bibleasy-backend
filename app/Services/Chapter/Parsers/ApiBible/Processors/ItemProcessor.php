@@ -16,6 +16,7 @@ class ItemProcessor
     private const NOTE_STYLES = ['f', 'fe', 'x', 'ef', 'ex'];
     private const NOTE_CONTENT_STYLES = ['ft', 'fqa', 'xt', 'fr', 'fq', 'fv'];
     private const PLACEHOLDER_FORMAT = '{{%s}}';
+    private const TITLE_PLACEHOLDER_FORMAT = '[[%s]]';
     private const LOG_TRUNCATE_LENGTH = 50;
 
     private ?int $currentVerseNumber = null;
@@ -134,9 +135,10 @@ class ItemProcessor
             return null;
         }
 
-        $verseNumber = $this->parseVerseNumber($verseId, $context);
+        // Use current verse so the reference is on the same verse that receives the title with the placeholder
+        $verseNumber = $this->currentVerseNumber ?? $this->parseVerseNumber($verseId, $context);
         if ($verseNumber === null) {
-            $this->warnings->add('ApiBibleContentParser: note in title skipped (verseId does not match chapter).', [
+            $this->warnings->add('ApiBibleContentParser: note in title skipped (no verse number available).', [
                 'context' => $context->getContextKey(),
                 'verse_id' => $verseId,
             ]);
@@ -158,6 +160,36 @@ class ItemProcessor
         $verseData->addReference(new VerseReferenceResponseDTO($slug, $noteText));
 
         return sprintf(self::PLACEHOLDER_FORMAT, $slug);
+    }
+
+    /**
+     * Buffers a speaker/custom title so it can later be flushed as CUSTOM (inline within
+     * the same verse) or as END/START when a different verse boundary is reached.
+     */
+    public function addCustomTitle(VerseTitleDTO $title): void
+    {
+        $this->titleBuffer->add($title);
+    }
+
+    /**
+     * Flushes buffered titles as custom inline titles (position CUSTOM with [[slug]] placeholder)
+     * on the given verse.
+     *
+     * @param  array<VerseTitleDTO>  $titles
+     */
+    private function flushTitlesAsCustom(array $titles, int $verseNumber): void
+    {
+        $verseData = $this->builder->getOrCreate($verseNumber);
+        foreach ($titles as $title) {
+            $slug = $verseData->nextTitleSlug();
+            $verseData->addTitle(new VerseTitleDTO(
+                $title->text,
+                $title->type,
+                VerseTitlePositionEnum::CUSTOM,
+                $slug,
+            ));
+            $verseData->appendText("\n" . sprintf(self::TITLE_PLACEHOLDER_FORMAT, $slug));
+        }
     }
 
     /**
@@ -228,6 +260,12 @@ class ItemProcessor
 
         $verseData = $this->builder->getOrCreate($verseNumber);
         $this->maybePrependParagraphBreak($verseData, $verseNumber, $context);
+
+        // Buffered titles that appear mid-verse (e.g. speaker titles "sp") become
+        // custom inline titles with [[slug]] placeholders in the verse text.
+        if (!$this->titleBuffer->isEmpty() && $this->currentVerseNumber === $verseNumber) {
+            $this->flushTitlesAsCustom($this->titleBuffer->flush(), $verseNumber);
+        }
 
         // Only add newline before this segment when it's the first text in this paragraph
         // and the verse already has content from a previous paragraph (without trailing newline).
@@ -373,9 +411,13 @@ class ItemProcessor
                 continue;
             }
 
-            $skippedText = ($item['type'] ?? '') === 'text'
-                ? trim((string) ($item['text'] ?? ''))
-                : $this->extractTextFromItems($item['items'] ?? []);
+            // Direct text nodes inside note are included in note content
+            if (($item['type'] ?? '') === 'text') {
+                $result .= (string) ($item['text'] ?? '');
+                continue;
+            }
+
+            $skippedText = $this->extractTextFromItems($item['items'] ?? []);
             if ($skippedText !== '') {
                 $this->warnings->add('ApiBibleContentParser: note content skipped (not a char tag; add handling if needed).', [
                     'context' => $context->getContextKey(),
