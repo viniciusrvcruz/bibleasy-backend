@@ -157,6 +157,34 @@
                                 "items": [{ "text": "Ref cruzada ficticia Xyz 2.1-3", "type": "text" }]
                             }
                         ]
+                    },
+                    {
+                        "name": "note",
+                        "type": "tag",
+                        "attrs": {
+                            "caller": "+",
+                            "style": "f",
+                            "id": "TST.1.2!f.1",
+                            "verseId": "TST.1.2"
+                        },
+                        "items": [
+                            {
+                                "name": "char",
+                                "type": "tag",
+                                "attrs": { "style": "fr", "closed": "false" },
+                                "items": [{ "text": "1.2 ", "type": "text" }]
+                            },
+                            {
+                                "text": " ou ",
+                                "type": "text"
+                            },
+                            {
+                                "name": "char",
+                                "type": "tag",
+                                "attrs": { "style": "fqa", "closed": "false" },
+                                "items": [{ "text": "variante com texto direto na nota.", "type": "text" }]
+                            }
+                        ]
                     }
                 ]
             },

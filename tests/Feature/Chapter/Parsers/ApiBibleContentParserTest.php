@@ -150,6 +150,52 @@ describe('ApiBibleContentParser', function () {
             ->and($v1->text)->toContain('Na minha angústia clamei ao Senhor.');
     });
 
+    it('includes direct text nodes inside note in reference text', function () {
+        // api.bible can put plain text items (type "text") as direct children of note alongside char tags (e.g. MRK.5.34 NVI)
+        $content = [
+            [
+                'name' => 'para',
+                'type' => 'tag',
+                'attrs' => ['style' => 'p'],
+                'items' => [
+                    ['name' => 'verse', 'type' => 'tag', 'attrs' => ['number' => '34', 'style' => 'v'], 'items' => [['text' => '34', 'type' => 'text']]],
+                    ['text' => 'Então ele lhe disse: "Filha, a sua fé a curou!', 'type' => 'text', 'attrs' => ['verseId' => 'MRK.5.34']],
+                    [
+                        'name' => 'note',
+                        'type' => 'tag',
+                        'attrs' => ['caller' => '+', 'style' => 'f', 'id' => 'MRK.5.34!f.1', 'verseId' => 'MRK.5.34'],
+                        'items' => [
+                            [
+                                'name' => 'char',
+                                'type' => 'tag',
+                                'attrs' => ['style' => 'fr'],
+                                'items' => [['text' => '5.34 ', 'type' => 'text']],
+                            ],
+                            ['text' => ' Ou ', 'type' => 'text'],
+                            [
+                                'name' => 'char',
+                                'type' => 'tag',
+                                'attrs' => ['style' => 'fqa', 'closed' => 'false'],
+                                'items' => [['text' => 'a salvou!', 'type' => 'text']],
+                            ],
+                        ],
+                    ],
+                    ['text' => ' Vá em paz."', 'type' => 'text', 'attrs' => ['verseId' => 'MRK.5.34']],
+                ],
+            ],
+        ];
+
+        $parser = app(ApiBibleContentParser::class);
+        $verses = $parser->parse($content, 'MRK', '5', 'NVI');
+
+        expect($verses)->toHaveCount(1);
+        $v = $verses->first();
+        expect($v->number)->toBe(34)
+            ->and($v->references)->toHaveCount(1)
+            ->and($v->references->first()->text)->toBe('5.34  Ou a salvou!')
+            ->and($v->text)->toContain('curou!{{1}} Vá em paz.');
+    });
+
     it('extracts inline note and inserts slug in verse text', function () {
         $content = [
             [
@@ -257,20 +303,25 @@ describe('ApiBibleContentParser', function () {
             ->and($v1->references->get(2)->slug)->toBe('3')
             ->and($v1->references->get(2)->text)->toContain('Variante alternativa sintetica');
 
-        // Verse 2: text + cross-reference note (style x); qa "Interlúdio" + note after verse -> title on verse 2 with position end; blank para (b) after adds extra newline
+        // Verse 2: text + cross-reference note (style x); note with direct text node (char + text + char); qa "Interlúdio" + note after verse -> title on verse 2 with position end; blank para (b) after adds extra newline
         $v2 = $verses->get(1);
         expect($v2->number)->toBe(2)
             ->and($v2->titles)->toHaveCount(1)
-            ->and($v2->titles->get(0)->text)->toBe('Interlúdio{{2}}')
+            ->and($v2->titles->get(0)->text)->toBe('Interlúdio{{3}}')
             ->and($v2->titles->get(0)->type)->toBe(VerseTitleTypeEnum::SECTION)
             ->and($v2->titles->get(0)->position)->toBe(VerseTitlePositionEnum::END)
             ->and($v2->text)->toContain('Paragrafo dois lorem ipsum')
             ->and($v2->text)->toContain('{{1}}')
+            ->and($v2->text)->toContain('{{2}}')
             ->and($v2->text)->toContain("\n\n")
-            ->and($v2->references)->toHaveCount(2)
+            ->and($v2->references)->toHaveCount(3)
             ->and($v2->references->get(0)->text)->toBe('Ref cruzada ficticia Xyz 2.1-3')
             ->and($v2->references->get(1)->slug)->toBe('2')
-            ->and($v2->references->get(1)->text)->toContain('Selá. Termo musical ou literário');
+            ->and($v2->references->get(1)->text)->toContain('1.2 ')
+            ->and($v2->references->get(1)->text)->toContain('ou')
+            ->and($v2->references->get(1)->text)->toContain('variante com texto direto na nota.')
+            ->and($v2->references->get(2)->slug)->toBe('3')
+            ->and($v2->references->get(2)->text)->toContain('Selá. Termo musical ou literário');
 
         // Verses 3, 4, 5: multiple verses in same paragraph; verse 5 has continuation via para with vid
         $v3 = $verses->get(2);

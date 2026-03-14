@@ -188,7 +188,7 @@ class ItemProcessor
                 VerseTitlePositionEnum::CUSTOM,
                 $slug,
             ));
-            $verseData->appendText(sprintf(self::TITLE_PLACEHOLDER_FORMAT, $slug));
+            $verseData->appendText("\n" . sprintf(self::TITLE_PLACEHOLDER_FORMAT, $slug));
         }
     }
 
@@ -411,9 +411,13 @@ class ItemProcessor
                 continue;
             }
 
-            $skippedText = ($item['type'] ?? '') === 'text'
-                ? trim((string) ($item['text'] ?? ''))
-                : $this->extractTextFromItems($item['items'] ?? []);
+            // Direct text nodes inside note are included in note content
+            if (($item['type'] ?? '') === 'text') {
+                $result .= (string) ($item['text'] ?? '');
+                continue;
+            }
+
+            $skippedText = $this->extractTextFromItems($item['items'] ?? []);
             if ($skippedText !== '') {
                 $this->warnings->add('ApiBibleContentParser: note content skipped (not a char tag; add handling if needed).', [
                     'context' => $context->getContextKey(),
