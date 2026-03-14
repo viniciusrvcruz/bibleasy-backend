@@ -295,16 +295,22 @@ describe('ApiBibleContentParser', function () {
             ->and($v6->text)->toContain('Destaque')
             ->and($v6->text)->toContain('fim do verso seis');
 
-        // Verse 7: s1 title with note whose verseId points to verse 8 (next verse) -> title and reference must stay on verse 7 (position end), not leak to verse 8
+        // Verse 7: s1 title with note + sp (speaker) title with note -> both titles and references stay on verse 7 (position end)
         $v7 = $verses->get(6);
         expect($v7->number)->toBe(7)
-            ->and($v7->titles)->toHaveCount(1)
+            ->and($v7->titles)->toHaveCount(2)
             ->and($v7->titles->get(0)->text)->toBe('Titulo entre versos{{1}}')
             ->and($v7->titles->get(0)->type)->toBe(VerseTitleTypeEnum::SECTION)
             ->and($v7->titles->get(0)->position)->toBe(VerseTitlePositionEnum::END)
-            ->and($v7->references)->toHaveCount(1)
+            ->and($v7->titles->get(1)->text)->toBe('A Amada{{2}}')
+            ->and($v7->titles->get(1)->type)->toBe(VerseTitleTypeEnum::SECTION)
+            ->and($v7->titles->get(1)->position)->toBe(VerseTitlePositionEnum::END)
+            ->and($v7->references)->toHaveCount(2)
             ->and($v7->references->get(0)->slug)->toBe('1')
             ->and($v7->references->get(0)->text)->toBe('1.8 Nota do titulo com verseId apontando para o proximo verso.')
+            ->and($v7->references->get(1)->slug)->toBe('2')
+            ->and($v7->references->get(1)->text)->toContain('Os subtítulos identificam os interlocutores')
+            ->and($v7->references->get(1)->text)->toContain('não fazem parte do texto original')
             ->and($v7->text)->toContain('Verso sete texto antes do titulo.');
 
         // Verse 8: must have no titles and no references (they belong to verse 7)
@@ -652,5 +658,84 @@ describe('ApiBibleContentParser', function () {
         $v8 = $verses->get(1);
         expect($v8->number)->toBe(8)
             ->and($v8->titles)->toHaveCount(0);
+    });
+
+    it('processes note inside speaker title (sp) and adds reference to verse that receives the title', function () {
+        // Mirrors api.bible NVT SNG.1: "A Amada" subtitle with footnote about interlocutors
+        $content = [
+            [
+                'name' => 'para',
+                'type' => 'tag',
+                'attrs' => ['style' => 'p'],
+                'items' => [
+                    ['name' => 'verse', 'type' => 'tag', 'attrs' => ['number' => '1', 'style' => 'v'], 'items' => [['text' => '1', 'type' => 'text']]],
+                    ['text' => 'Este é o cântico dos cânticos de Salomão.', 'type' => 'text', 'attrs' => ['verseId' => 'SNG.1.1']],
+                ],
+            ],
+            [
+                'name' => 'para',
+                'type' => 'tag',
+                'attrs' => ['style' => 'sp'],
+                'items' => [
+                    ['text' => 'A Amada', 'type' => 'text'],
+                    [
+                        'name' => 'note',
+                        'type' => 'tag',
+                        'attrs' => ['caller' => '-', 'style' => 'f', 'id' => 'SNG.1.2!f.1', 'verseId' => 'SNG.1.2'],
+                        'items' => [
+                            [
+                                'name' => 'char',
+                                'type' => 'tag',
+                                'attrs' => ['style' => 'fr', 'closed' => 'false'],
+                                'items' => [['text' => '1.1 ', 'type' => 'text']],
+                            ],
+                            [
+                                'name' => 'char',
+                                'type' => 'tag',
+                                'attrs' => ['style' => 'ft', 'closed' => 'false'],
+                                'items' => [
+                                    [
+                                        'text' => 'Os subtítulos identificam os interlocutores e não fazem parte do texto original, embora o hebraico geralmente forneça indicações por meio do gênero de quem fala.',
+                                        'type' => 'text',
+                                    ],
+                                ],
+                            ],
+                        ],
+                    ],
+                ],
+            ],
+            [
+                'name' => 'para',
+                'type' => 'tag',
+                'attrs' => ['style' => 'q'],
+                'items' => [
+                    ['name' => 'verse', 'type' => 'tag', 'attrs' => ['number' => '2', 'style' => 'v'], 'items' => [['text' => '2', 'type' => 'text']]],
+                    ['text' => 'Beije-me, beije-me mais uma vez,', 'type' => 'text', 'attrs' => ['verseId' => 'SNG.1.2']],
+                ],
+            ],
+        ];
+
+        $parser = app(ApiBibleContentParser::class);
+        $verses = $parser->parse($content, 'SNG', '1', 'DEV');
+
+        expect($verses)->toHaveCount(2);
+
+        $v1 = $verses->get(0);
+        expect($v1->number)->toBe(1)
+            ->and($v1->titles)->toHaveCount(1)
+            ->and($v1->titles->first()->text)->toBe('A Amada{{1}}')
+            ->and($v1->titles->first()->type)->toBe(VerseTitleTypeEnum::SECTION)
+            ->and($v1->titles->first()->position)->toBe(VerseTitlePositionEnum::END)
+            ->and($v1->references)->toHaveCount(1)
+            ->and($v1->references->first()->slug)->toBe('1')
+            ->and($v1->references->first()->text)->toContain('Os subtítulos identificam os interlocutores')
+            ->and($v1->references->first()->text)->toContain('não fazem parte do texto original')
+            ->and($v1->text)->toContain('Este é o cântico dos cânticos de Salomão.');
+
+        $v2 = $verses->get(1);
+        expect($v2->number)->toBe(2)
+            ->and($v2->titles)->toHaveCount(0)
+            ->and($v2->references)->toHaveCount(0)
+            ->and($v2->text)->toContain('Beije-me, beije-me mais uma vez,');
     });
 });

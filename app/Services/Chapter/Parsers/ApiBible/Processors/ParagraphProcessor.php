@@ -50,7 +50,7 @@ class ParagraphProcessor
         }
 
         if ($this->isSpeakerTitle($style)) {
-            $this->processSpeakerTitle($items);
+            $this->processSpeakerTitle($items, $baseContext);
             return;
         }
 
@@ -145,9 +145,16 @@ class ParagraphProcessor
         }
     }
 
-    private function processSpeakerTitle(array $items): void
+    private function processSpeakerTitle(array $items, ParsingContext $baseContext): void
     {
-        $text = $this->itemProcessor->extractTextFromItems($items);
+        $context = new ParsingContext(
+            $baseContext->bookId,
+            $baseContext->chapterNumber,
+            false,
+            false,
+            'sp'
+        );
+        $text = $this->itemProcessor->buildTitleTextWithNotePlaceholders($items, $context);
         if ($text !== '') {
             $this->itemProcessor->addCustomTitle(new VerseTitleDTO($text, VerseTitleTypeEnum::SECTION));
         }

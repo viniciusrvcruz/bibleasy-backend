@@ -399,6 +399,38 @@
             {
                 "name": "para",
                 "type": "tag",
+                "attrs": { "style": "sp" },
+                "items": [
+                    { "text": "A Amada", "type": "text" },
+                    {
+                        "name": "note",
+                        "type": "tag",
+                        "attrs": {
+                            "caller": "-",
+                            "style": "f",
+                            "id": "TST.1.8!f.2",
+                            "verseId": "TST.1.8"
+                        },
+                        "items": [
+                            {
+                                "name": "char",
+                                "type": "tag",
+                                "attrs": { "style": "fr", "closed": "false" },
+                                "items": [{ "text": "1.7 ", "type": "text" }]
+                            },
+                            {
+                                "name": "char",
+                                "type": "tag",
+                                "attrs": { "style": "ft", "closed": "false" },
+                                "items": [{ "text": "Os subtítulos identificam os interlocutores e não fazem parte do texto original.", "type": "text" }]
+                            }
+                        ]
+                    }
+                ]
+            },
+            {
+                "name": "para",
+                "type": "tag",
                 "attrs": { "style": "q1" },
                 "items": [
                     {

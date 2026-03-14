@@ -135,6 +135,7 @@ class ItemProcessor
             return null;
         }
 
+        // Use current verse so the reference is on the same verse that receives the title with the placeholder
         $verseNumber = $this->currentVerseNumber ?? $this->parseVerseNumber($verseId, $context);
         if ($verseNumber === null) {
             $this->warnings->add('ApiBibleContentParser: note in title skipped (no verse number available).', [
