@@ -6,7 +6,7 @@
         "bookId": "TST",
         "reference": "Lorem ipsum fixture",
         "copyright": "Lorem ipsum fixture. All ids and text are synthetic for testing.",
-        "verseCount": 8,
+        "verseCount": 10,
         "content": [
             {
                 "name": "para",
@@ -474,6 +474,104 @@
                             "verseId": "TST.1.8",
                             "verseOrgIds": ["TST.1.8"]
                         }
+                    }
+                ]
+            },
+            {
+                "name": "para",
+                "type": "tag",
+                "attrs": { "style": "p" },
+                "items": [
+                    {
+                        "name": "verse",
+                        "type": "tag",
+                        "attrs": { "number": "9", "style": "v" },
+                        "items": [{ "text": "9", "type": "text" }]
+                    },
+                    {
+                        "text": "Significado das palavras:",
+                        "type": "text",
+                        "attrs": {
+                            "verseId": "TST.1.9",
+                            "verseOrgIds": ["TST.1.9"]
+                        }
+                    }
+                ]
+            },
+            {
+                "name": "para",
+                "type": "tag",
+                "attrs": { "style": "qm1" },
+                "items": [
+                    {
+                        "name": "char",
+                        "type": "tag",
+                        "attrs": { "style": "tl" },
+                        "items": [{ "text": "Mene", "type": "text" }]
+                    },
+                    {
+                        "text": ": Deus contou os dias",
+                        "type": "text"
+                    }
+                ]
+            },
+            {
+                "name": "para",
+                "type": "tag",
+                "attrs": { "style": "qm2" },
+                "items": [
+                    {
+                        "text": "do teu reinado",
+                        "type": "text"
+                    }
+                ]
+            },
+            {
+                "name": "para",
+                "type": "tag",
+                "attrs": { "style": "qm2" },
+                "items": [
+                    {
+                        "text": "e determinou o seu fim.",
+                        "type": "text"
+                    }
+                ]
+            },
+            {
+                "name": "para",
+                "type": "tag",
+                "attrs": { "style": "p" },
+                "items": [
+                    {
+                        "name": "verse",
+                        "type": "tag",
+                        "attrs": { "number": "10", "style": "v" },
+                        "items": [{ "text": "10", "type": "text" }]
+                    },
+                    {
+                        "text": "Assim declaro eu, rei:",
+                        "type": "text",
+                        "attrs": {
+                            "verseId": "TST.1.10",
+                            "verseOrgIds": ["TST.1.10"]
+                        }
+                    }
+                ]
+            },
+            {
+                "name": "para",
+                "type": "tag",
+                "attrs": { "style": "b" },
+                "items": []
+            },
+            {
+                "name": "para",
+                "type": "tag",
+                "attrs": { "style": "pi1" },
+                "items": [
+                    {
+                        "text": "O Senhor deu-me todos os reinos da terra e designou-me para construir um templo.",
+                        "type": "text"
                     }
                 ]
             }

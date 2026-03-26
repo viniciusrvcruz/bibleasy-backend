@@ -242,19 +242,13 @@ class ItemProcessor
             return;
         }
 
-        if ($verseId === null || $text === '') {
-            $this->warnSkippedText($text, $context);
+        if ($text === '') {
             return;
         }
 
-        $verseNumber = $this->parseVerseNumber($verseId, $context);
+        $verseNumber = $this->resolveVerseNumber($verseId, $context);
         if ($verseNumber === null) {
-            $this->warnings->add('ApiBibleContentParser: text skipped (verseId does not match chapter).', [
-                'context' => $context->getContextKey(),
-                'paragraph_style' => $context->paragraphStyle,
-                'verse_id' => $verseId,
-                'text_snippet' => $this->truncate($text),
-            ]);
+            $this->warnSkippedText($text, $context);
             return;
         }
 
@@ -431,6 +425,19 @@ class ItemProcessor
         return trim($result);
     }
 
+    /**
+     * Resolves the verse number from verseId attribute, falling back to currentVerseNumber
+     * when verseId is absent (common in poetry/indented paragraphs like qm1, qm2, pi1).
+     */
+    private function resolveVerseNumber(?string $verseId, ParsingContext $context): ?int
+    {
+        if ($verseId !== null) {
+            return $this->parseVerseNumber($verseId, $context);
+        }
+
+        return $this->currentVerseNumber;
+    }
+
     private function parseVerseNumber(string $verseId, ParsingContext $context): ?int
     {
         $prefix = "{$context->bookId}.{$context->chapterNumber}.";
@@ -463,14 +470,10 @@ class ItemProcessor
             return;
         }
 
-        $reason = $context->isChapterLabel
-            ? 'text in chapter label paragraph (not inside a note)'
-            : 'missing or invalid verseId';
-
         $this->warnings->add('ApiBibleContentParser: text skipped.', [
             'context' => $context->getContextKey(),
             'paragraph_style' => $context->paragraphStyle,
-            'reason' => $reason,
+            'reason' => 'no verseId and no current verse number available',
             'text_snippet' => $this->truncate($text),
         ]);
     }
