@@ -280,7 +280,7 @@ describe('ApiBibleContentParser', function () {
         $parser = app(ApiBibleContentParser::class);
         $verses = $parser->parse($content, 'TST', '1', 'DEV');
 
-        expect($verses)->toHaveCount(8);
+        expect($verses)->toHaveCount(10);
 
         // Verse 1: section title (s1) with note placeholder, reference title (r), chapter-label note (ref_prefix), text, inline footnote; titles before first verse have position start
         $v1 = $verses->get(0);
@@ -370,6 +370,21 @@ describe('ApiBibleContentParser', function () {
             ->and($v8->titles)->toHaveCount(0)
             ->and($v8->references)->toHaveCount(0)
             ->and($v8->text)->toContain('Verso oito texto apos o titulo.');
+
+        // Verse 9: text with verseId in p, then qm1 with char (tl) + text without verseId, then qm2 texts without verseId (DAN.5 pattern)
+        $v9 = $verses->get(8);
+        expect($v9->number)->toBe(9)
+            ->and($v9->text)->toContain('Significado das palavras:')
+            ->and($v9->text)->toContain('Mene')
+            ->and($v9->text)->toContain(': Deus contou os dias')
+            ->and($v9->text)->toContain('do teu reinado')
+            ->and($v9->text)->toContain('e determinou o seu fim.');
+
+        // Verse 10: text with verseId in p, then blank para (b), then pi1 with text without verseId (2CH.36 pattern)
+        $v10 = $verses->get(9);
+        expect($v10->number)->toBe(10)
+            ->and($v10->text)->toContain('Assim declaro eu, rei:')
+            ->and($v10->text)->toContain('O Senhor deu-me todos os reinos da terra');
     });
 
     it('assigns position start to titles that appear before the first verse', function () {
@@ -788,5 +803,161 @@ describe('ApiBibleContentParser', function () {
             ->and($v2->titles)->toHaveCount(0)
             ->and($v2->references)->toHaveCount(0)
             ->and($v2->text)->toContain('Beije-me, beije-me mais uma vez,');
+    });
+
+    it('uses currentVerseNumber for qm1/qm2 poetry text without verseId (DAN.5 pattern)', function () {
+        $content = [
+            [
+                'name' => 'para',
+                'type' => 'tag',
+                'attrs' => ['style' => 'p'],
+                'items' => [
+                    ['name' => 'verse', 'type' => 'tag', 'attrs' => ['number' => '26', 'style' => 'v'], 'items' => [['text' => '26', 'type' => 'text']]],
+                    ['text' => '"E este é o significado dessas palavras:', 'type' => 'text', 'attrs' => ['verseId' => 'DAN.5.26']],
+                ],
+            ],
+            [
+                'name' => 'para',
+                'type' => 'tag',
+                'attrs' => ['style' => 'qm1'],
+                'items' => [
+                    [
+                        'name' => 'char',
+                        'type' => 'tag',
+                        'attrs' => ['style' => 'tl'],
+                        'items' => [['text' => 'Mene', 'type' => 'text']],
+                    ],
+                    ['text' => ': Deus contou os dias', 'type' => 'text'],
+                ],
+            ],
+            [
+                'name' => 'para',
+                'type' => 'tag',
+                'attrs' => ['style' => 'qm2'],
+                'items' => [
+                    ['text' => 'do teu reinado', 'type' => 'text'],
+                ],
+            ],
+            [
+                'name' => 'para',
+                'type' => 'tag',
+                'attrs' => ['style' => 'qm2'],
+                'items' => [
+                    ['text' => 'e determinou o seu fim.', 'type' => 'text'],
+                ],
+            ],
+            [
+                'name' => 'para',
+                'type' => 'tag',
+                'attrs' => ['style' => 'qm1'],
+                'items' => [
+                    ['name' => 'verse', 'type' => 'tag', 'attrs' => ['number' => '27', 'style' => 'v'], 'items' => [['text' => '27', 'type' => 'text']]],
+                    [
+                        'name' => 'char',
+                        'type' => 'tag',
+                        'attrs' => ['style' => 'tl'],
+                        'items' => [['text' => 'Tequel', 'type' => 'text']],
+                    ],
+                    ['text' => ': Foste pesado na balança', 'type' => 'text'],
+                ],
+            ],
+            [
+                'name' => 'para',
+                'type' => 'tag',
+                'attrs' => ['style' => 'qm2'],
+                'items' => [
+                    ['text' => 'e achado em falta.', 'type' => 'text'],
+                ],
+            ],
+            [
+                'name' => 'para',
+                'type' => 'tag',
+                'attrs' => ['style' => 'qm1'],
+                'items' => [
+                    ['name' => 'verse', 'type' => 'tag', 'attrs' => ['number' => '28', 'style' => 'v'], 'items' => [['text' => '28', 'type' => 'text']]],
+                    [
+                        'name' => 'char',
+                        'type' => 'tag',
+                        'attrs' => ['style' => 'tl'],
+                        'items' => [['text' => 'Peres', 'type' => 'text']],
+                    ],
+                    ['text' => ': Teu reino foi dividido', 'type' => 'text'],
+                ],
+            ],
+            [
+                'name' => 'para',
+                'type' => 'tag',
+                'attrs' => ['style' => 'qm2'],
+                'items' => [
+                    ['text' => 'e entregue aos medos e persas".', 'type' => 'text'],
+                ],
+            ],
+        ];
+
+        $parser = app(ApiBibleContentParser::class);
+        $verses = $parser->parse($content, 'DAN', '5', 'NVI');
+
+        expect($verses)->toHaveCount(3);
+
+        $v26 = $verses->get(0);
+        expect($v26->number)->toBe(26)
+            ->and($v26->text)->toContain('"E este é o significado dessas palavras:')
+            ->and($v26->text)->toContain('Mene')
+            ->and($v26->text)->toContain(': Deus contou os dias')
+            ->and($v26->text)->toContain('do teu reinado')
+            ->and($v26->text)->toContain('e determinou o seu fim.');
+
+        $v27 = $verses->get(1);
+        expect($v27->number)->toBe(27)
+            ->and($v27->text)->toContain('Tequel')
+            ->and($v27->text)->toContain(': Foste pesado na balança')
+            ->and($v27->text)->toContain('e achado em falta.');
+
+        $v28 = $verses->get(2);
+        expect($v28->number)->toBe(28)
+            ->and($v28->text)->toContain('Peres')
+            ->and($v28->text)->toContain(': Teu reino foi dividido')
+            ->and($v28->text)->toContain('e entregue aos medos e persas".');
+    });
+
+    it('uses currentVerseNumber for pi1 indented text without verseId (2CH.36 pattern)', function () {
+        $content = [
+            [
+                'name' => 'para',
+                'type' => 'tag',
+                'attrs' => ['style' => 'p'],
+                'items' => [
+                    ['name' => 'verse', 'type' => 'tag', 'attrs' => ['number' => '23', 'style' => 'v'], 'items' => [['text' => '23', 'type' => 'text']]],
+                    ['text' => '"Assim declaro eu, Ciro, rei da Pérsia:', 'type' => 'text', 'attrs' => ['verseId' => '2CH.36.23']],
+                ],
+            ],
+            [
+                'name' => 'para',
+                'type' => 'tag',
+                'attrs' => ['style' => 'b'],
+                'items' => [],
+            ],
+            [
+                'name' => 'para',
+                'type' => 'tag',
+                'attrs' => ['style' => 'pi1'],
+                'items' => [
+                    [
+                        'text' => '"O Senhor, o Deus dos céus, deu-me todos os reinos da terra e designou-me para construir um templo para ele em Jerusalém, na terra de Judá. Quem dentre vocês pertencer ao seu povo vá para Jerusalém, e que o Senhor, o seu Deus, esteja com ele".',
+                        'type' => 'text',
+                    ],
+                ],
+            ],
+        ];
+
+        $parser = app(ApiBibleContentParser::class);
+        $verses = $parser->parse($content, '2CH', '36', 'NVI');
+
+        expect($verses)->toHaveCount(1);
+
+        $v23 = $verses->first();
+        expect($v23->number)->toBe(23)
+            ->and($v23->text)->toContain('"Assim declaro eu, Ciro, rei da Pérsia:')
+            ->and($v23->text)->toContain('"O Senhor, o Deus dos céus, deu-me todos os reinos da terra');
     });
 });
