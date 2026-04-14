@@ -105,6 +105,39 @@ describe('ApiBibleChapterAdapter', function () {
             });
     });
 
+    it('includes HTTP status, bible chapter context and error JSON in externalApiError message', function () {
+        $version = Version::factory()->create([
+            'text_source' => VersionTextSourceEnum::API_BIBLE,
+            'external_version_id' => 'bible-id',
+        ]);
+        $book = Book::factory()->create([
+            'version_id' => $version->id,
+            'abbreviation' => BookAbbreviationEnum::PSA,
+        ]);
+        Chapter::factory()->create(['number' => 119, 'book_id' => $book->id]);
+
+        Http::fake([
+            '*' => Http::response([
+                'code' => 'Unauthorized',
+                'message' => 'Invalid API key',
+            ], 401),
+        ]);
+
+        config(['services.api_bible.key' => 'test-key', 'services.api_bible.base_url' => 'https://rest.api.bible/v1']);
+
+        $adapter = app(ApiBibleChapterAdapter::class);
+
+        expect(fn () => $adapter->getChapter($version, BookAbbreviationEnum::PSA, 119))
+            ->toThrow(function (ChapterSourceException $e) {
+                expect($e->getErrorType())->toBe('external_api_error')
+                    ->and($e->getMessage())->toContain('HTTP 401')
+                    ->and($e->getMessage())->toContain('bible-id')
+                    ->and($e->getMessage())->toContain('PSA.119')
+                    ->and($e->getMessage())->toContain('Response:')
+                    ->and($e->getMessage())->toContain('Invalid API key');
+            });
+    });
+
     it('throws invalidResponse when API response structure is invalid', function () {
         $version = Version::factory()->create([
             'text_source' => VersionTextSourceEnum::API_BIBLE,
