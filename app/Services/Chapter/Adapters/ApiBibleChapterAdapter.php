@@ -8,8 +8,10 @@ use App\Models\Chapter;
 use App\Models\Version;
 use App\Services\Chapter\DTOs\ChapterResponseDTO;
 use App\Services\Chapter\Parsers\ApiBibleContentParser;
-use Illuminate\Support\Facades\Http;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Http\Client\Response;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Str;
 
 /**
  * Fetches chapter content from api.bible and maps to ChapterResponseDTO.
@@ -50,9 +52,7 @@ class ApiBibleChapterAdapter extends AbstractCachedChapterAdapter
             ]);
 
         if (! $response->successful()) {
-            throw ChapterSourceException::externalApiError(
-                'API Bible request failed: ' . $response->status()
-            );
+            $this->throwExternalApiErrorForFailedResponse($response, $externalId, $bookId, $number);
         }
 
         $data = $response->json();
@@ -88,6 +88,33 @@ class ApiBibleChapterAdapter extends AbstractCachedChapterAdapter
             bookName: $bookName,
             bookAbbreviation: $abbreviation,
             verses: $verses
+        );
+    }
+
+    /**
+     * @throws ChapterSourceException
+     */
+    private function throwExternalApiErrorForFailedResponse(
+        Response $response,
+        string $externalVersionId,
+        string $bookId,
+        int $chapterNumber
+    ): never {
+        $decoded = $response->json();
+        $payloadStr = is_array($decoded)
+            ? json_encode($decoded, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)
+            : $response->body();
+
+        throw ChapterSourceException::externalApiError(
+            sprintf(
+                'API Bible request failed (HTTP %d %s) for bible %s, chapter %s.%d. Response: %s',
+                $response->status(),
+                $response->reason(),
+                $externalVersionId,
+                $bookId,
+                $chapterNumber,
+                Str::limit((string) $payloadStr, 500)
+            )
         );
     }
 
