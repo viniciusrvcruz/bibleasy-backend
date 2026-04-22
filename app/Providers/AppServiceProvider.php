@@ -2,6 +2,8 @@
 
 namespace App\Providers;
 
+use App\Services\Support\Interfaces\SupportServiceInterface;
+use App\Services\Support\OlieFlowSupportService;
 use App\Support\ChapterRateLimit;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Resources\Json\JsonResource;
@@ -14,7 +16,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        $this->app->bind(SupportServiceInterface::class, OlieFlowSupportService::class);
     }
 
     /**
