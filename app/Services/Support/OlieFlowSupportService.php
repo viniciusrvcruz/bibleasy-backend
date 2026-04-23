@@ -6,6 +6,7 @@ use App\Exceptions\Support\SupportException;
 use App\Services\Support\DTOs\SendSupportDTO;
 use App\Services\Support\Interfaces\SupportServiceInterface;
 use Illuminate\Http\Client\PendingRequest;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
@@ -40,8 +41,14 @@ class OlieFlowSupportService implements SupportServiceInterface
             ->firstWhere('id', $this->stepId);
 
         if (! $funnelStep) {
-            throw SupportException::resourceNotFound(
-                "Funnel step with ID {$this->stepId} not found in project response."
+            $this->logSupportFailure(
+                $dto,
+                'OlieFlow: Funnel step not found in project response',
+                ['step_id' => $this->stepId, 'project_id' => $project['id'] ?? null],
+                SupportException::resourceNotFound(
+                    "Funnel step with ID {$this->stepId} not found in project response."
+                ),
+                'warning'
             );
         }
 
@@ -66,15 +73,17 @@ class OlieFlowSupportService implements SupportServiceInterface
             ->post('/api/management/projects/quick-store', $payload);
 
         if ($response->failed()) {
-            Log::error('OlieFlow: Failed to create project', [
-                'payload' => $payload,
-                'description' => $dto->description,
-                'status' => $response->status(),
-                'response' => $response->json(),
-            ]);
-
-            throw SupportException::externalApiError(
-                "Failed to create project on OlieFlow: {$response->body()}"
+            $this->logSupportFailure(
+                $dto,
+                'OlieFlow: Failed to create project',
+                [
+                    'payload' => $payload,
+                    'status' => $response->status(),
+                    'response' => $response->json(),
+                ],
+                SupportException::externalApiError(
+                    "Failed to create project on OlieFlow: {$response->body()}"
+                )
             );
         }
 
@@ -107,10 +116,7 @@ class OlieFlowSupportService implements SupportServiceInterface
                 ],
                 [
                     'id' => $this->edgeFilesId,
-                    'answer' => array_map(
-                        fn ($file) => base64_encode($file->getContent()),
-                        $dto->files
-                    ),
+                    'answer' => $this->uploadDynamicFormAnswerFiles($dto),
                 ],
             ],
         ];
@@ -119,17 +125,99 @@ class OlieFlowSupportService implements SupportServiceInterface
             ->post('/api/management/dynamic-forms/set-form-answers', $payload);
 
         if ($response->failed()) {
-            Log::error('OlieFlow: Failed to submit form', [
-                'payload' => $payload,
-                'description' => $dto->description,
-                'status' => $response->status(),
-                'response' => $response->json(),
-            ]);
-
-            throw SupportException::externalApiError(
-                "Failed to submit form on OlieFlow: {$response->body()}"
+            $this->logSupportFailure(
+                $dto,
+                'OlieFlow: Failed to submit form',
+                [
+                    'payload' => $payload,
+                    'status' => $response->status(),
+                    'response' => $response->json(),
+                ],
+                SupportException::externalApiError(
+                    "Failed to submit form on OlieFlow: {$response->body()}"
+                )
             );
         }
+    }
+
+    /**
+     * @return array<int, array<string, mixed>>
+     */
+    private function uploadDynamicFormAnswerFiles(SendSupportDTO $dto): array
+    {
+        $answers = [];
+
+        foreach ($dto->files as $file) {
+            $answers[] = $this->uploadDynamicFormAnswerFile($dto, $file);
+        }
+
+        return $answers;
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function uploadDynamicFormAnswerFile(SendSupportDTO $dto, UploadedFile $file): array
+    {
+        $path = $file->getRealPath();
+
+        if ($path === false) {
+            $this->logSupportFailure(
+                $dto,
+                'OlieFlow: Could not resolve uploaded file path',
+                ['filename' => $file->getClientOriginalName()],
+                SupportException::externalApiError(
+                    'Could not read uploaded file for OlieFlow.'
+                )
+            );
+        }
+
+        $contents = file_get_contents($path);
+
+        if ($contents === false) {
+            $this->logSupportFailure(
+                $dto,
+                'OlieFlow: Could not read uploaded file contents',
+                ['filename' => $file->getClientOriginalName()],
+                SupportException::externalApiError(
+                    'Could not read uploaded file contents for OlieFlow.'
+                )
+            );
+        }
+
+        $response = $this->httpClient()
+            ->attach('file', $contents, $file->getClientOriginalName())
+            ->post('/api/management/dynamic-forms-answers-file');
+
+        if ($response->failed()) {
+            $this->logSupportFailure(
+                $dto,
+                'OlieFlow: Failed to upload dynamic form answer file',
+                [
+                    'filename' => $file->getClientOriginalName(),
+                    'status' => $response->status(),
+                    'response' => $response->json(),
+                ],
+                SupportException::externalApiError(
+                    "Failed to upload file on OlieFlow: {$response->body()}"
+                )
+            );
+        }
+
+        $data = $response->json();
+
+        if (! is_array($data)) {
+            $this->logSupportFailure(
+                $dto,
+                'OlieFlow: Unexpected response when uploading file',
+                ['filename' => $file->getClientOriginalName()],
+                SupportException::externalApiError(
+                    'Unexpected response when uploading file on OlieFlow.'
+                )
+            );
+        }
+
+        return $data;
     }
 
     private function appendEmailToDescription(string $email, string $description): string
@@ -149,10 +237,48 @@ class OlieFlowSupportService implements SupportServiceInterface
 
         if (empty($value)) {
             throw SupportException::missingConfiguration(
-                "Missing required configuration: " . self::CONFIG_PREFIX . $key
+                'Missing required configuration: ' . self::CONFIG_PREFIX . $key
             );
         }
 
         return $value;
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function dtoLogContext(SendSupportDTO $dto): array
+    {
+        return [
+            'support_type' => $dto->type->value,
+            'description' => $dto->description,
+            'ip' => $dto->ip,
+            'user_agent' => $dto->userAgent,
+            'email' => $dto->email,
+            'file_names' => array_map(
+                fn (UploadedFile $file) => $file->getClientOriginalName(),
+                $dto->files
+            ),
+        ];
+    }
+
+    /**
+     * @param array<string, mixed> $context
+     */
+    private function logSupportFailure(
+        SendSupportDTO $dto,
+        string $message,
+        array $context,
+        SupportException $exception,
+        string $level = 'error',
+    ): never {
+        $logContext = array_merge($this->dtoLogContext($dto), $context);
+
+        match ($level) {
+            'warning' => Log::warning($message, $logContext),
+            default => Log::error($message, $logContext),
+        };
+
+        throw $exception;
     }
 }
