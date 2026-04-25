@@ -70,7 +70,7 @@ class OlieFlowSupportService implements SupportServiceInterface
         ];
 
         $response = $this->httpClient()
-            ->post('/api/management/projects/quick-store', $payload);
+            ->post('/projects/quick-store', $payload);
 
         if ($response->failed()) {
             $this->logSupportFailure(
@@ -122,7 +122,7 @@ class OlieFlowSupportService implements SupportServiceInterface
         ];
 
         $response = $this->httpClient()
-            ->post('/api/management/dynamic-forms/set-form-answers', $payload);
+            ->post('/dynamic-forms/set-form-answers', $payload);
 
         if ($response->failed()) {
             $this->logSupportFailure(
@@ -187,7 +187,7 @@ class OlieFlowSupportService implements SupportServiceInterface
 
         $response = $this->httpClient()
             ->attach('file', $contents, $file->getClientOriginalName())
-            ->post('/api/management/dynamic-forms-answers-file');
+            ->post('/dynamic-forms-answers-file');
 
         if ($response->failed()) {
             $this->logSupportFailure(

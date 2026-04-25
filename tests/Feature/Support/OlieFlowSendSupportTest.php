@@ -6,7 +6,7 @@ use Illuminate\Support\Facades\Http;
 
 beforeEach(function () {
     config([
-        'services.olie_flow.base_url' => 'https://api.olie-fake.com',
+        'services.olie_flow.base_url' => 'https://api.olie-fake.com/api/management',
         'services.olie_flow.api_key' => 'fake-api-key',
         'services.olie_flow.step_id' => '100',
         'services.olie_flow.form_id' => '50',
@@ -19,7 +19,7 @@ beforeEach(function () {
 describe('Send Support via OlieFlow', function () {
     it('calls OlieFlow when sending a support request successfully', function () {
         Http::fake([
-            '*/api/management/projects/quick-store' => Http::response([
+            '*/projects/quick-store' => Http::response([
                 'response' => true,
                 'project' => [
                     'id' => 'fake-project-id',
@@ -32,7 +32,7 @@ describe('Send Support via OlieFlow', function () {
                     ],
                 ],
             ]),
-            '*/api/management/dynamic-forms/set-form-answers' => Http::response([
+            '*/dynamic-forms/set-form-answers' => Http::response([
                 'response' => true,
                 'edges' => [],
             ]),
@@ -52,7 +52,7 @@ describe('Send Support via OlieFlow', function () {
 
     it('uploads files and submits form answers to OlieFlow', function () {
         Http::fake([
-            '*/api/management/projects/quick-store' => Http::response([
+            '*/projects/quick-store' => Http::response([
                 'response' => true,
                 'project' => [
                     'id' => 'fake-project-id',
@@ -65,7 +65,7 @@ describe('Send Support via OlieFlow', function () {
                     ],
                 ],
             ]),
-            '*/api/management/dynamic-forms-answers-file' => Http::response([
+            '*/dynamic-forms-answers-file' => Http::response([
                 'id' => 'fake-file-id',
                 'name' => 'screenshot.png',
                 'url' => 'https://example.com/file.png',
@@ -74,7 +74,7 @@ describe('Send Support via OlieFlow', function () {
                 'file_id' => 'fake-file-id',
                 'created_at' => '2026-04-23T21:40:49.595271Z',
             ]),
-            '*/api/management/dynamic-forms/set-form-answers' => Http::response([
+            '*/dynamic-forms/set-form-answers' => Http::response([
                 'response' => true,
                 'edges' => [],
             ]),
@@ -112,7 +112,7 @@ describe('Send Support via OlieFlow', function () {
 
     it('returns 502 when OlieFlow project creation fails', function () {
         Http::fake([
-            '*/api/management/projects/quick-store' => Http::response([
+            '*/projects/quick-store' => Http::response([
                 'response' => false,
                 'message' => 'error',
             ], 500),
@@ -128,7 +128,7 @@ describe('Send Support via OlieFlow', function () {
 
     it('returns 422 when configured funnel step is missing from OlieFlow project', function () {
         Http::fake([
-            '*/api/management/projects/quick-store' => Http::response([
+            '*/projects/quick-store' => Http::response([
                 'response' => true,
                 'project' => [
                     'id' => 'fake-project-id',
@@ -153,7 +153,7 @@ describe('Send Support via OlieFlow', function () {
 
     it('submits description without email suffix when email is omitted', function () {
         Http::fake([
-            '*/api/management/projects/quick-store' => Http::response([
+            '*/projects/quick-store' => Http::response([
                 'response' => true,
                 'project' => [
                     'id' => 'fake-project-id',
@@ -166,7 +166,7 @@ describe('Send Support via OlieFlow', function () {
                     ],
                 ],
             ]),
-            '*/api/management/dynamic-forms/set-form-answers' => Http::response([
+            '*/dynamic-forms/set-form-answers' => Http::response([
                 'response' => true,
                 'edges' => [],
             ]),
@@ -193,7 +193,7 @@ describe('Send Support via OlieFlow', function () {
 
     it('appends email to the description field sent to OlieFlow', function () {
         Http::fake([
-            '*/api/management/projects/quick-store' => Http::response([
+            '*/projects/quick-store' => Http::response([
                 'response' => true,
                 'project' => [
                     'id' => 'fake-project-id',
@@ -206,7 +206,7 @@ describe('Send Support via OlieFlow', function () {
                     ],
                 ],
             ]),
-            '*/api/management/dynamic-forms/set-form-answers' => Http::response([
+            '*/dynamic-forms/set-form-answers' => Http::response([
                 'response' => true,
                 'edges' => [],
             ]),
