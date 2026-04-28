@@ -117,7 +117,7 @@ describe('Send Support via OlieFlow', function () {
                 return false;
             }
 
-            $answers = collect($request->data()['form_answers'] ?? []);
+            $answers = collect($request->data()['form_answers']);
             $filesAnswer = $answers->firstWhere('id', 3);
 
             return isset($filesAnswer['answer'][0]['id'], $filesAnswer['answer'][0]['file_id'])
@@ -173,6 +173,10 @@ describe('Send Support via OlieFlow', function () {
     });
 
     it('submits description without email suffix when email is omitted', function () {
+        $descriptionText = 'How does this work?';
+        $expectedIp = '203.0.113.11';
+        $expectedUserAgent = 'PestTestAgent/1.0';
+
         Http::fake([
             '*/projects/quick-store' => Http::response([
                 'response' => true,
@@ -199,26 +203,40 @@ describe('Send Support via OlieFlow', function () {
             ]),
         ]);
 
-        $response = $this->postJson('/api/support', [
-            'type' => SupportTypeEnum::QUESTION->value,
-            'description' => 'How does this work?',
-        ]);
+        $response = $this
+            ->withServerVariables(['REMOTE_ADDR' => $expectedIp])
+            ->withHeaders(['User-Agent' => $expectedUserAgent])
+            ->postJson('/api/support', [
+                'type' => SupportTypeEnum::QUESTION->value,
+                'description' => $descriptionText,
+            ]);
 
         $response->assertOk();
 
-        Http::assertSent(function ($request) {
+        Http::assertSent(function ($request) use ($descriptionText, $expectedIp, $expectedUserAgent) {
             if (! str_contains($request->url(), 'set-form-answers')) {
                 return false;
             }
 
-            $answers = collect($request->data()['form_answers'] ?? []);
+            $answers = collect($request->data()['form_answers']);
             $descAnswer = $answers->firstWhere('id', 2);
 
-            return isset($descAnswer['answer']) && $descAnswer['answer'] === 'How does this work?';
+            $answer = $descAnswer['answer'];
+
+            return isset($descAnswer['answer'])
+                && str_contains($answer, $descriptionText)
+                && ! str_contains($answer, 'Email:')
+                && str_contains($answer, "IP: {$expectedIp}")
+                && str_contains($answer, "User-Agent: {$expectedUserAgent}");
         });
     });
 
     it('appends email to the description field sent to OlieFlow', function () {
+        $descriptionText = 'Bug report';
+        $expectedEmail = 'user@test.com';
+        $expectedIp = '203.0.113.10';
+        $expectedUserAgent = 'PestTestAgent/1.0';
+
         Http::fake([
             '*/projects/quick-store' => Http::response([
                 'response' => true,
@@ -245,24 +263,32 @@ describe('Send Support via OlieFlow', function () {
             ]),
         ]);
 
-        $response = $this->postJson('/api/support', [
-            'type' => SupportTypeEnum::BUG->value,
-            'description' => 'Bug report',
-            'email' => 'user@test.com',
-        ]);
+        $response = $this
+            ->withServerVariables(['REMOTE_ADDR' => $expectedIp])
+            ->withHeaders(['User-Agent' => $expectedUserAgent])
+            ->postJson('/api/support', [
+                'type' => SupportTypeEnum::BUG->value,
+                'description' => $descriptionText,
+                'email' => $expectedEmail,
+            ]);
 
         $response->assertOk();
 
-        Http::assertSent(function ($request) {
+        Http::assertSent(function ($request) use ($descriptionText, $expectedEmail, $expectedIp, $expectedUserAgent) {
             if (! str_contains($request->url(), 'set-form-answers')) {
                 return false;
             }
 
-            $answers = collect($request->data()['form_answers'] ?? []);
+            $answers = collect($request->data()['form_answers']);
             $descAnswer = $answers->firstWhere('id', 2);
 
+            $answer = $descAnswer['answer'];
+
             return isset($descAnswer['answer'])
-                && str_contains($descAnswer['answer'], 'Email: user@test.com');
+                && str_contains($answer, $descriptionText)
+                && str_contains($answer, "Email: {$expectedEmail}")
+                && str_contains($answer, "IP: {$expectedIp}")
+                && str_contains($answer, "User-Agent: {$expectedUserAgent}");
         });
     });
 });

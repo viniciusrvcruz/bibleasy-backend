@@ -54,9 +54,7 @@ class OlieFlowSupportService implements SupportServiceInterface
         }
 
         $projectFunnelId = $funnelStep['project_funnel_id'];
-        $description = $dto->email
-            ? $this->appendEmailToDescription($dto->email, $dto->description)
-            : $dto->description;
+        $description = $this->buildDescriptionFromDto($dto);
 
         $this->submitForm($project['id'], $projectFunnelId, $dto, $description);
 
@@ -244,9 +242,29 @@ class OlieFlowSupportService implements SupportServiceInterface
         return $data;
     }
 
-    private function appendEmailToDescription(string $email, string $description): string
+    private function buildDescriptionFromDto(SendSupportDTO $dto): string
     {
-        return "{$description}\n\nEmail: {$email}";
+        $description = $dto->description;
+
+        if ($dto->email) {
+            $description .= "\n\nEmail: {$dto->email}";
+        }
+
+        $lines = [];
+
+        if ($dto->ip !== '') {
+            $lines[] = "IP: {$dto->ip}";
+        }
+
+        if ($dto->userAgent !== '') {
+            $lines[] = "User-Agent: {$dto->userAgent}";
+        }
+
+        if (count($lines) === 0) {
+            return $description;
+        }
+
+        return $description . "\n\n" . implode("\n", $lines);
     }
 
     private function httpClient(): PendingRequest
