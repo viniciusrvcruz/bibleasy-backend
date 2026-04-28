@@ -25,23 +25,21 @@ class SendSupportRequest extends FormRequest
      * Images, short videos, and common documents for support tickets.
      */
     private static function supportAttachmentFileRule(): File
-    {
-        $images = [
+    {    
+        return File::types([
+            // Images
+            'image/jpg',
             'image/jpeg',
             'image/png',
             'image/gif',
             'image/webp',
             'image/heic',
             'image/heif',
-        ];
-    
-        $videos = [
+            // Videos
             'video/mp4',
             'video/webm',
             'video/quicktime',
-        ];
-    
-        $documents = [
+            // Documents
             'application/pdf',
             'application/msword',
             'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
@@ -52,12 +50,6 @@ class SendSupportRequest extends FormRequest
             'application/vnd.openxmlformats-officedocument.presentationml.presentation',
             'application/vnd.oasis.opendocument.text',
             'text/csv',
-        ];
-    
-        return File::types([
-            ...$images,
-            ...$videos,
-            ...$documents,
         ])->max(20480);
     }
 
