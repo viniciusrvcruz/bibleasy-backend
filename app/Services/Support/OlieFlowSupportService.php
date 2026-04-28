@@ -36,8 +36,9 @@ class OlieFlowSupportService implements SupportServiceInterface
     public function send(SendSupportDTO $dto): bool
     {
         $project = $this->createProject($dto);
+        $projectDetails = $this->getProjectDetails($project['id'], $dto);
 
-        $funnelStep = collect($project['funnel_steps'])
+        $funnelStep = collect($projectDetails['funnel_steps'])
             ->firstWhere('id', $this->stepId);
 
         if (! $funnelStep) {
@@ -83,6 +84,29 @@ class OlieFlowSupportService implements SupportServiceInterface
                 ],
                 SupportException::externalApiError(
                     "Failed to create project on OlieFlow: {$response->body()}"
+                )
+            );
+        }
+
+        return $response->json('project');
+    }
+
+    private function getProjectDetails(string $projectId, SendSupportDTO $dto): array
+    {
+        $response = $this->httpClient()
+            ->get("/projects/{$projectId}");
+
+        if ($response->failed()) {
+            $this->logSupportFailure(
+                $dto,
+                'OlieFlow: Failed to get project details',
+                [
+                    'project_id' => $projectId,
+                    'status' => $response->status(),
+                    'response' => $response->json(),
+                ],
+                SupportException::externalApiError(
+                    "Failed to get project details on OlieFlow: {$response->body()}"
                 )
             );
         }
@@ -204,7 +228,7 @@ class OlieFlowSupportService implements SupportServiceInterface
             );
         }
 
-        $data = $response->json();
+        $data = $response->json('file');
 
         if (! is_array($data)) {
             $this->logSupportFailure(

@@ -23,6 +23,12 @@ describe('Send Support via OlieFlow', function () {
                 'response' => true,
                 'project' => [
                     'id' => 'fake-project-id',
+                ],
+            ]),
+            '*/projects/fake-project-id' => Http::response([
+                'response' => true,
+                'project' => [
+                    'id' => 'fake-project-id',
                     'funnel_steps' => [
                         [
                             'id' => 100,
@@ -47,12 +53,18 @@ describe('Send Support via OlieFlow', function () {
         $response->assertOk()
             ->assertJson(['message' => 'Support request sent successfully.']);
 
-        Http::assertSentCount(2);
+        Http::assertSentCount(3);
     });
 
     it('uploads files and submits form answers to OlieFlow', function () {
         Http::fake([
             '*/projects/quick-store' => Http::response([
+                'response' => true,
+                'project' => [
+                    'id' => 'fake-project-id',
+                ],
+            ]),
+            '*/projects/fake-project-id' => Http::response([
                 'response' => true,
                 'project' => [
                     'id' => 'fake-project-id',
@@ -66,13 +78,16 @@ describe('Send Support via OlieFlow', function () {
                 ],
             ]),
             '*/dynamic-forms-answers-file' => Http::response([
-                'id' => 'fake-file-id',
-                'name' => 'screenshot.png',
-                'url' => 'https://example.com/file.png',
-                'size' => 1024,
-                'extension' => 'png',
-                'file_id' => 'fake-file-id',
-                'created_at' => '2026-04-23T21:40:49.595271Z',
+                'response' => true,
+                'file' => [
+                    'id' => 'fake-file-id',
+                    'name' => 'screenshot.png',
+                    'url' => 'https://example.com/file.png',
+                    'size' => 1024,
+                    'extension' => 'png',
+                    'file_id' => 'fake-file-id',
+                    'created_at' => '2026-04-23T21:40:49.595271Z',
+                ],
             ]),
             '*/dynamic-forms/set-form-answers' => Http::response([
                 'response' => true,
@@ -90,7 +105,7 @@ describe('Send Support via OlieFlow', function () {
 
         $response->assertOk();
 
-        Http::assertSentCount(3);
+        Http::assertSentCount(4);
 
         Http::assertSent(function ($request) {
             return str_contains($request->url(), 'dynamic-forms-answers-file')
@@ -132,6 +147,12 @@ describe('Send Support via OlieFlow', function () {
                 'response' => true,
                 'project' => [
                     'id' => 'fake-project-id',
+                ],
+            ]),
+            '*/projects/fake-project-id' => Http::response([
+                'response' => true,
+                'project' => [
+                    'id' => 'fake-project-id',
                     'funnel_steps' => [
                         [
                             'id' => 999,
@@ -154,6 +175,12 @@ describe('Send Support via OlieFlow', function () {
     it('submits description without email suffix when email is omitted', function () {
         Http::fake([
             '*/projects/quick-store' => Http::response([
+                'response' => true,
+                'project' => [
+                    'id' => 'fake-project-id',
+                ],
+            ]),
+            '*/projects/fake-project-id' => Http::response([
                 'response' => true,
                 'project' => [
                     'id' => 'fake-project-id',
@@ -194,6 +221,12 @@ describe('Send Support via OlieFlow', function () {
     it('appends email to the description field sent to OlieFlow', function () {
         Http::fake([
             '*/projects/quick-store' => Http::response([
+                'response' => true,
+                'project' => [
+                    'id' => 'fake-project-id',
+                ],
+            ]),
+            '*/projects/fake-project-id' => Http::response([
                 'response' => true,
                 'project' => [
                     'id' => 'fake-project-id',
