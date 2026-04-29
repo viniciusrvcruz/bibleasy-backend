@@ -48,4 +48,14 @@ return [
         'base_url' => env('API_BIBLE_BASE_URL'),
     ],
 
+    'olie_flow' => [
+        'base_url' => env('OLIE_FLOW_BASE_URL'),
+        'api_key' => env('OLIE_FLOW_API_KEY'),
+        'step_id' => env('OLIE_FLOW_STEP_ID'),
+        'form_id' => env('OLIE_FLOW_FORM_ID'),
+        'edge_type_id' => env('OLIE_FLOW_EDGE_TYPE_ID'),
+        'edge_description_id' => env('OLIE_FLOW_EDGE_DESCRIPTION_ID'),
+        'edge_files_id' => env('OLIE_FLOW_EDGE_FILES_ID'),
+    ],
+
 ];
