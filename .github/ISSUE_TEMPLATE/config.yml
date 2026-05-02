@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Ajuda Bibleasy
+    url: https://bibleasy.com/help
+    about: Central de ajuda e suporte no site Bibleasy.
+  - name: Documentação do projeto
+    url: https://github.com/viniciusrvcruz/bible-backend/blob/main/README.md
+    about: Visão geral, endpoints, importação e como rodar localmente (Docker).
