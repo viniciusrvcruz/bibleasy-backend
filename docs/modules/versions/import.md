@@ -10,7 +10,7 @@ Rotas (Sanctum `auth:admins`):
 - `PUT /api/admin/versions/{version}` — só metadados
 - `DELETE /api/admin/versions/{version}` — remove a versão e, em cascata, livros, capítulos, versículos e referências
 
-Listagem pública: `GET /api/versions` (sem auth). Usuário comum (`auth:users`) recebe 401 nesse endpoint.
+Listagem pública: `GET /api/versions` (sem auth). Sem token de admin (inclusive com token de usuário comum, `auth:users`), as rotas `/api/admin/*` respondem 401.
 
 ## O que o cliente envia
 
@@ -26,8 +26,8 @@ Listagem pública: `GET /api/versions` (sem auth). Usuário comum (`auth:users`)
 | `language` | obrigatório | obrigatório | `pt_br` ou `en` (`VersionLanguageEnum`) |
 | `copyright` | opcional | opcional | string, máx. 2000 |
 | `text_source` | obrigatório | opcional | `database` ou `api_bible` |
-| `external_version_id` | obrigatório se a fonte não for `database` | mesma regra | ID da tradução na Api.Bible |
-| `cache_ttl` | obrigatório se a fonte não for `database` | mesma regra | inteiro ≥ 1, em segundos |
+| `external_version_id` | obrigatório se a fonte não for `database` | obrigatório, a menos que `text_source=database` seja enviado no mesmo request | ID da tradução na Api.Bible |
+| `cache_ttl` | obrigatório se a fonte não for `database` | obrigatório, a menos que `text_source=database` seja enviado no mesmo request | inteiro ≥ 1, em segundos |
 
 Metadados (`abbreviation`, `name`, `language`, `copyright`, `text_source`, `external_version_id`, `cache_ttl`) vão para a tabela `versions`. O conteúdo dos arquivos vira livros, capítulos, versículos e referências.
 
@@ -199,7 +199,7 @@ Pacote `app/Services/Version/Adapters/Usfm/`:
 | `UsfmReferenceProcessor` | Extrai notas e as troca por `{{slug}}` |
 | `UsfmMarkerCleaner` + `UsfmMarkers` | Remove formatação (`\add`, `\wj`, …) e registra marcador desconhecido no log |
 
-Notas viram `VerseReferenceDTO`. O `slug` é um índice numérico em string, começando em `1` dentro do versículo (`{{1}}`, `{{2}}`, …). Tipos reconhecidos em `UsfmMarkers::NOTE_MARKERS`:
+Notas viram `VerseReferenceDTO`. O `slug` é um índice numérico em string, começando em `1` dentro do versículo (`{{1}}`, `{{2}}`, …). Tipos reconhecidos (`UsfmMarkers::NOTE_MARKERS`, mais `\rq`, tratado à parte no `UsfmReferenceProcessor`):
 
 | Marcador | Conteúdo | Exemplo de forma |
 |----------|----------|------------------|
