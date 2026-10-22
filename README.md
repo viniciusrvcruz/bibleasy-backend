@@ -14,8 +14,8 @@
 **API REST para leitura bíblica com múltiplas versões.** Backend da Bibleasy: listagem de versões, livros e capítulos, comparação entre traduções e sistema de importação de Bíblias em formatos USFM e JSON.
 
 <p align="center">
-  <a href="https://laravel.com/" target="_blank" rel="noreferrer"><img src="https://img.shields.io/badge/Laravel-12-FF2D20?style=for-the-badge&logo=laravel&logoColor=white" alt="Laravel" /></a>
-  <a href="https://www.php.net/" target="_blank" rel="noreferrer"><img src="https://img.shields.io/badge/PHP-8.2+-777BB4?style=for-the-badge&logo=php&logoColor=white" alt="PHP" /></a>
+  <a href="https://laravel.com/" target="_blank" rel="noreferrer"><img src="https://img.shields.io/badge/Laravel-13-FF2D20?style=for-the-badge&logo=laravel&logoColor=white" alt="Laravel" /></a>
+  <a href="https://www.php.net/" target="_blank" rel="noreferrer"><img src="https://img.shields.io/badge/PHP-8.4+-777BB4?style=for-the-badge&logo=php&logoColor=white" alt="PHP" /></a>
   <a href="https://www.postgresql.org/" target="_blank" rel="noreferrer"><img src="https://img.shields.io/badge/PostgreSQL-15+-4169E1?style=for-the-badge&logo=postgresql&logoColor=white" alt="PostgreSQL" /></a>
   <a href="https://redis.io/" target="_blank" rel="noreferrer"><img src="https://img.shields.io/badge/Redis-DC382D?style=for-the-badge&logo=redis&logoColor=white" alt="Redis" /></a>
   <a href="https://www.docker.com/" target="_blank" rel="noreferrer"><img src="https://img.shields.io/badge/Docker-Compose-2496ED?style=for-the-badge&logo=docker&logoColor=white" alt="Docker" /></a>
@@ -23,7 +23,7 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/PHP-8.2+-777BB4?style=flat-square&logo=php&logoColor=white" alt="PHP" />
+  <img src="https://img.shields.io/badge/PHP-8.4+-777BB4?style=flat-square&logo=php&logoColor=white" alt="PHP" />
   <img src="https://img.shields.io/badge/Docker-Ready-2496ED?style=flat-square&logo=docker&logoColor=white" alt="Docker" />
 </p>
 
@@ -71,6 +71,8 @@ O **Bibleasy Backend** é a API do projeto Bibleasy. Expõe versões bíblicas, 
 
 ## 📥 Importação de versões
 
+Guia completo (contrato HTTP, formatos de arquivo, validação e persistência): **[docs/modules/versions/import.md](docs/modules/versions/import.md)**.
+
 O backend permite importar Bíblias completas a partir de arquivos em formatos suportados. O fluxo usa **Factory + Strategy**: um adapter por formato converte os arquivos em DTOs, um validador garante a integridade dos dados e um importer persiste tudo em transação no PostgreSQL.
 
 ### Formatos suportados
@@ -79,7 +81,7 @@ O backend permite importar Bíblias completas a partir de arquivos em formatos s
 | ------- | ------- | --- |
 | `usfm` | USFM (Unified Standard Format Markers) | Arquivos `.usfm` por livro; marcadores são limpos e referências processadas |
 | `json_thiago_bodruk` | JSON (estrutura Thiago Bodruk) | JSON com livros, capítulos e versículos no formato esperado pelo adapter |
-| `json_youversion` | JSON (estrutura YouVersion) | JSON no formato YouVersion com livros, capítulos e versículos |
+| `json_youversion` | JSON (estrutura YouVersion) | Só a estrutura (livros, capítulos e versículos); o texto fica vazio e é lido depois via Api.Bible |
 
 Novos formatos podem ser adicionados implementando `VersionAdapterInterface` e registrando o adapter na `VersionAdapterFactory`.
 
@@ -97,8 +99,8 @@ Para versões com `text_source = api_bible`, configure no `.env` as variáveis `
 ### Fluxo da importação
 
 1. **Upload / envio** — Os arquivos da versão são enviados para o endpoint de import (admin).
-2. **Adaptação** — O adapter escolhido (`usfm` ou `json_thiago_bodruk`) lê os arquivos e gera um `VersionDTO` (lista de `BookDTO` → `ChapterDTO` → `VerseDTO` e `VerseReferenceDTO`).
-3. **Validação** — O `VersionValidator` verifica: livros com capítulos, capítulos com versículos, texto dos versículos não vazio, referências com slug e texto válidos, ausência de marcadores USFM residuais e placeholders `{{slug}}` corretos no texto.
+2. **Adaptação** — O adapter escolhido (`usfm`, `json_thiago_bodruk` ou `json_youversion`) lê os arquivos e gera um `VersionDTO` (lista de `BookDTO` → `ChapterDTO` → `VerseDTO` e `VerseReferenceDTO`).
+3. **Validação** — O `VersionValidator` verifica a árvore (livros, capítulos, versículos). Com `text_source=database`, o texto do versículo não pode ser vazio e referências precisam ter slug, texto e placeholder `{{slug}}`. Com `api_bible`, o texto do versículo precisa ficar vazio.
 4. **Persistência** — Em uma única transação: criação do registro da versão, depois livros, capítulos, versículos e referências cruzadas (`verse_references`).
 
 ### Estrutura USFM (resumo)
@@ -141,7 +143,7 @@ Assim, uma Bíblia importada fica pronta para ser servida pela API com livros, c
 
 | Tecnologia | Descrição |
 | --------- | --------- |
-| <a href="https://laravel.com/" target="_blank" rel="noreferrer">Laravel 12</a> | Framework PHP |
+| <a href="https://laravel.com/" target="_blank" rel="noreferrer">Laravel 13</a> | Framework PHP |
 | <a href="https://www.postgresql.org/" target="_blank" rel="noreferrer">PostgreSQL</a> | Banco de dados relacional |
 | <a href="https://redis.io/" target="_blank" rel="noreferrer">Redis</a> | Cache (capítulos de fontes externas e otimizações) |
 | <a href="https://laravel.com/docs/sanctum" target="_blank" rel="noreferrer">Laravel Sanctum</a> | Autenticação por API tokens |

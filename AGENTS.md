@@ -6,7 +6,7 @@ This document helps automated assistants and contributors understand **how this 
 
 - **REST API only** — No Blade views; JSON responses for a Bible reading app ([Bibleasy](https://bibleasy.com)).
 - **Domain**: biblical versions, books, chapters, verses, cross-references; admin-managed version import (USFM / JSON); chapter content from **PostgreSQL** or **Api.Bible** depending on version configuration.
-- **Stack**: Laravel 12, PHP ^8.2, PostgreSQL, Redis (cache / rate limiting), Laravel Sanctum, Socialite for OAuth flows.
+- **Stack**: Laravel 13, PHP ^8.4, PostgreSQL, Redis (cache / rate limiting), Laravel Sanctum, Socialite for OAuth flows.
 
 ## Running commands
 
