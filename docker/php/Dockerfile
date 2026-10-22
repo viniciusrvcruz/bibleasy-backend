@@ -1,5 +1,5 @@
 # Base stage: shared PHP image and extensions
-FROM serversideup/php:8.4-fpm-nginx-alpine AS base
+FROM serversideup/php:8.5-fpm-nginx-alpine AS base
 
 USER root
 

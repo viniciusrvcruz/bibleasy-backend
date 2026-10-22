@@ -14,8 +14,8 @@
 **API REST para leitura bíblica com múltiplas versões.** Backend da Bibleasy: listagem de versões, livros e capítulos, comparação entre traduções e sistema de importação de Bíblias em formatos USFM e JSON.
 
 <p align="center">
-  <a href="https://laravel.com/" target="_blank" rel="noreferrer"><img src="https://img.shields.io/badge/Laravel-12-FF2D20?style=for-the-badge&logo=laravel&logoColor=white" alt="Laravel" /></a>
-  <a href="https://www.php.net/" target="_blank" rel="noreferrer"><img src="https://img.shields.io/badge/PHP-8.2+-777BB4?style=for-the-badge&logo=php&logoColor=white" alt="PHP" /></a>
+  <a href="https://laravel.com/" target="_blank" rel="noreferrer"><img src="https://img.shields.io/badge/Laravel-13-FF2D20?style=for-the-badge&logo=laravel&logoColor=white" alt="Laravel" /></a>
+  <a href="https://www.php.net/" target="_blank" rel="noreferrer"><img src="https://img.shields.io/badge/PHP-8.4+-777BB4?style=for-the-badge&logo=php&logoColor=white" alt="PHP" /></a>
   <a href="https://www.postgresql.org/" target="_blank" rel="noreferrer"><img src="https://img.shields.io/badge/PostgreSQL-15+-4169E1?style=for-the-badge&logo=postgresql&logoColor=white" alt="PostgreSQL" /></a>
   <a href="https://redis.io/" target="_blank" rel="noreferrer"><img src="https://img.shields.io/badge/Redis-DC382D?style=for-the-badge&logo=redis&logoColor=white" alt="Redis" /></a>
   <a href="https://www.docker.com/" target="_blank" rel="noreferrer"><img src="https://img.shields.io/badge/Docker-Compose-2496ED?style=for-the-badge&logo=docker&logoColor=white" alt="Docker" /></a>
@@ -23,7 +23,7 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/PHP-8.2+-777BB4?style=flat-square&logo=php&logoColor=white" alt="PHP" />
+  <img src="https://img.shields.io/badge/PHP-8.4+-777BB4?style=flat-square&logo=php&logoColor=white" alt="PHP" />
   <img src="https://img.shields.io/badge/Docker-Ready-2496ED?style=flat-square&logo=docker&logoColor=white" alt="Docker" />
 </p>
 
@@ -143,7 +143,7 @@ Assim, uma Bíblia importada fica pronta para ser servida pela API com livros, c
 
 | Tecnologia | Descrição |
 | --------- | --------- |
-| <a href="https://laravel.com/" target="_blank" rel="noreferrer">Laravel 12</a> | Framework PHP |
+| <a href="https://laravel.com/" target="_blank" rel="noreferrer">Laravel 13</a> | Framework PHP |
 | <a href="https://www.postgresql.org/" target="_blank" rel="noreferrer">PostgreSQL</a> | Banco de dados relacional |
 | <a href="https://redis.io/" target="_blank" rel="noreferrer">Redis</a> | Cache (capítulos de fontes externas e otimizações) |
 | <a href="https://laravel.com/docs/sanctum" target="_blank" rel="noreferrer">Laravel Sanctum</a> | Autenticação por API tokens |
